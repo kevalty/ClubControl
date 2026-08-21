@@ -1,50 +1,47 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
 
 const NAV_ITEMS = [
-  { href: "miembros", label: "Miembros" },
-  { href: "planes", label: "Planes" },
+  { href: "", label: "Resumen" },
+  { href: "clubes", label: "Clubes" },
   { href: "pagos", label: "Pagos" },
-  { href: "asistencia", label: "Asistencia" },
-  { href: "clases", label: "Clases" },
-  { href: "configuracion/pagos", label: "Cuentas bancarias" },
-  { href: "configuracion/whatsapp", label: "Plantillas WhatsApp" },
-  { href: "whatsapp/anuncio", label: "Enviar anuncio" },
-  { href: "configuracion/suscripcion", label: "Suscripción" },
+  { href: "planes", label: "Planes" },
 ];
 
-export default async function DashboardLayout({
+export default async function AdminLayout({
   children,
-  params,
 }: {
   children: React.ReactNode;
-  params: Promise<{ orgSlug: string }>;
 }) {
-  const { orgSlug } = await params;
   const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
 
-  const { data: org } = await supabase
-    .from("organizations")
-    .select("id, name")
-    .eq("slug", orgSlug)
+  if (!userData.user) {
+    redirect("/auth/login");
+  }
+
+  const { data: admin } = await supabase
+    .from("platform_admins")
+    .select("id")
+    .eq("id", userData.user.id)
     .maybeSingle();
 
-  if (!org) {
-    notFound();
+  if (!admin) {
+    redirect("/");
   }
 
   return (
     <div className="flex min-h-full flex-1 flex-col md:flex-row">
       <aside className="flex shrink-0 flex-col gap-1 border-b bg-muted/30 p-4 md:w-56 md:border-b-0 md:border-r">
-        <div className="mb-4 px-2 text-lg font-semibold">{org.name}</div>
-        <nav className="flex flex-row gap-1 overflow-x-auto md:flex-col">
+        <div className="mb-4 px-2 text-lg font-semibold">GestorClub — Admin</div>
+        <nav className="flex flex-row flex-wrap gap-1 md:flex-col">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.href}
-              href={`/${orgSlug}/dashboard/${item.href}`}
+              href={`/admin${item.href ? `/${item.href}` : ""}`}
               className="whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
             >
               {item.label}

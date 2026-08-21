@@ -27,6 +27,16 @@ async function redirigirSegunClubes(
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData.user?.id ?? "";
 
+  const { data: platformAdmin } = await supabase
+    .from("platform_admins")
+    .select("id")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (platformAdmin) {
+    redirect("/admin");
+  }
+
   const [{ data: staffMemberships }, { data: portalMemberships }] = await Promise.all([
     supabase
       .from("organization_members")

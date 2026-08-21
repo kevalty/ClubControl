@@ -780,6 +780,69 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          method: string
+          organization_id: string
+          paid_at: string | null
+          plan_id: string
+          proof_url: string | null
+          reference_number: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          method?: string
+          organization_id: string
+          paid_at?: string | null
+          plan_id: string
+          proof_url?: string | null
+          reference_number?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          method?: string
+          organization_id?: string
+          paid_at?: string | null
+          plan_id?: string
+          proof_url?: string | null
+          reference_number?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_payments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_payments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           created_at: string
@@ -854,10 +917,19 @@ export type Database = {
     }
     Functions: {
       approve_payment: { Args: { p_payment_id: string }; Returns: undefined }
+      approve_platform_payment: {
+        Args: { p_payment_id: string }
+        Returns: undefined
+      }
       reject_payment: {
         Args: { p_payment_id: string; p_reason?: string }
         Returns: undefined
       }
+      reject_platform_payment: {
+        Args: { p_payment_id: string }
+        Returns: undefined
+      }
+      suspend_past_due_organizations: { Args: never; Returns: number }
     }
     Enums: {
       [_ in never]: never
