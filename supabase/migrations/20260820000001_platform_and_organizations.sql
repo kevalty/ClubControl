@@ -113,6 +113,21 @@ as $$
   limit 1;
 $$;
 
+-- Usada solo por la policy de INSERT de organization_members (bootstrap del
+-- primer owner de un club recién creado). Tiene que ser security definer:
+-- una subconsulta directa a organization_members DENTRO de su propia policy
+-- reevalúa esa misma policy para cada fila candidata → "infinite recursion
+-- detected in policy for relation organization_members" (42P17).
+create or replace function private.org_has_no_members(org_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public, pg_temp
+stable
+as $$
+  select not exists (select 1 from organization_members where organization_id = org_id);
+$$;
+
 -- =========================================
 -- RLS
 -- =========================================
@@ -187,7 +202,7 @@ with check (
   private.user_org_role(organization_id) in ('owner','admin')
   or private.is_platform_admin()
   -- primer owner de una organización recién creada (no hay filas previas todavía)
-  or not exists (select 1 from organization_members om where om.organization_id = organization_members.organization_id)
+  or private.org_has_no_members(organization_id)
 );
 create policy "org_members_update_owner_admin_or_platform_admin"
 on organization_members for update
