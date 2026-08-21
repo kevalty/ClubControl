@@ -31,21 +31,36 @@ export async function crearMiembro(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.from("members").insert({
-    organization_id: orgId,
-    full_name: parsed.data.fullName,
-    email: parsed.data.email || null,
-    phone: parsed.data.phone,
-    document_id: parsed.data.documentId || null,
-    birth_date: parsed.data.birthDate || null,
-    emergency_contact_name: parsed.data.emergencyContactName || null,
-    emergency_contact_phone: parsed.data.emergencyContactPhone || null,
-    notes: parsed.data.notes || null,
-  });
+  const { data: nuevoMiembro, error } = await supabase
+    .from("members")
+    .insert({
+      organization_id: orgId,
+      full_name: parsed.data.fullName,
+      email: parsed.data.email || null,
+      phone: parsed.data.phone,
+      document_id: parsed.data.documentId || null,
+      birth_date: parsed.data.birthDate || null,
+      emergency_contact_name: parsed.data.emergencyContactName || null,
+      emergency_contact_phone: parsed.data.emergencyContactPhone || null,
+      notes: parsed.data.notes || null,
+    })
+    .select("id")
+    .single();
 
   if (error) {
     return { error: "No se pudo crear el miembro. Intenta de nuevo." };
   }
+
+  // CLAUDE.md §8.6: mensaje de bienvenida al crear un miembro nuevo. Se
+  // agenda para envío inmediato — el cron de Fase 3 lo despacha.
+  await supabase.from("payment_reminders").insert({
+    organization_id: orgId,
+    member_id: nuevoMiembro.id,
+    channel: "whatsapp",
+    template_key: "bienvenida",
+    scheduled_at: new Date().toISOString(),
+    status: "scheduled",
+  });
 
   revalidatePath(`/${orgSlug}/dashboard/miembros`);
   redirect(`/${orgSlug}/dashboard/miembros`);

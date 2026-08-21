@@ -9,6 +9,8 @@ const NAV_ITEMS = [
   { href: "planes", label: "Planes" },
   { href: "pagos", label: "Pagos" },
   { href: "configuracion/pagos", label: "Cuentas bancarias" },
+  { href: "configuracion/whatsapp", label: "Plantillas WhatsApp" },
+  { href: "whatsapp/anuncio", label: "Enviar anuncio" },
 ];
 
 export default async function DashboardLayout({
