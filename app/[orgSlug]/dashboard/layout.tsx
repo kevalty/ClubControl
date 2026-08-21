@@ -1,0 +1,56 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { logout } from "@/app/auth/actions";
+import { Button } from "@/components/ui/button";
+
+const NAV_ITEMS = [
+  { href: "miembros", label: "Miembros" },
+  { href: "planes", label: "Planes" },
+];
+
+export default async function DashboardLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ orgSlug: string }>;
+}) {
+  const { orgSlug } = await params;
+  const supabase = await createClient();
+
+  const { data: org } = await supabase
+    .from("organizations")
+    .select("id, name")
+    .eq("slug", orgSlug)
+    .maybeSingle();
+
+  if (!org) {
+    notFound();
+  }
+
+  return (
+    <div className="flex min-h-full flex-1 flex-col md:flex-row">
+      <aside className="flex shrink-0 flex-col gap-1 border-b bg-muted/30 p-4 md:w-56 md:border-b-0 md:border-r">
+        <div className="mb-4 px-2 text-lg font-semibold">{org.name}</div>
+        <nav className="flex flex-row gap-1 overflow-x-auto md:flex-col">
+          {NAV_ITEMS.map((item) => (
+            <Link
+              key={item.href}
+              href={`/${orgSlug}/dashboard/${item.href}`}
+              className="whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+        <form action={logout} className="mt-auto pt-4">
+          <Button type="submit" variant="ghost" size="sm" className="w-full">
+            Cerrar sesión
+          </Button>
+        </form>
+      </aside>
+      <main className="flex-1 p-4 md:p-8">{children}</main>
+    </div>
+  );
+}
