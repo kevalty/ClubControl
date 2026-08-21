@@ -33,7 +33,8 @@
 **FASE 1 — Núcleo administrativo: ✅ completada.**
 **FASE 2 — Cobros: ✅ completada.**
 **FASE 3 — WhatsApp: ✅ completada.**
-**Siguiente: FASE 4 — Acceso y clases (módulos 8.7, 8.8).**
+**FASE 4 — Acceso y clases: ✅ completada.**
+**Siguiente: FASE 5 — Portal del miembro + PWA.**
 
 ---
 
@@ -467,7 +468,72 @@ entorno de producción. Ya está en la lista de pendientes al final de este
 archivo.
 
 ## Fase 4 — Acceso y clases
-Módulos 8.7, 8.8. **Estado: ⬜ no empezado.**
+Módulos 8.7, 8.8. **Estado: ✅ completa.**
+
+### Decisiones y desviaciones documentadas
+- **Check-in por QR es un endpoint público** (`/api/checkin/[orgSlug]`, sin
+  sesión): CLAUDE.md §5 comenta `checked_in_by ... -- null si fue
+  self-service por QR`, lo cual solo tiene sentido si el escaneo NO
+  requiere que alguien esté logueado. El propio `qr_code` (32 hex chars
+  aleatorios, `gen_random_bytes(16)`) hace de credencial — adivinarlo es
+  inviable, así que es razonable tratarlo como autorización suficiente
+  para esta única acción acotada. Implementado con el service-role client
+  (nunca expuesto al navegador) porque `anon` no tiene ningún grant en
+  ninguna tabla (principio de "nada accesible sin sesión" de Fase 0).
+  `/[orgSlug]/checkin` y `/api/checkin` se agregaron a las rutas públicas
+  del middleware.
+- **Generación del QR visual**: CLAUDE.md solo pide que el miembro "pueda
+  mostrar su QR desde el portal" (eso es Fase 5, no existe todavía). Para
+  que el kiosco fuera probable/usable YA, se agregó una tarjeta con el QR
+  en la ficha de miembro del dashboard (`qrcode` renderizado server-side a
+  data URI) — el staff puede mostrárselo a un miembro nuevo mientras no
+  exista el portal. No es parte literal de 8.3 ni 8.7, es la extensión más
+  simple para que 8.7 sea end-to-end usable ahora.
+- **Nombres de staff/entrenadores**: `auth.users` no se expone vía
+  PostgREST (privacidad), así que no hay forma de leer el nombre de un
+  `organization_members` con el cliente normal. Se agregó
+  `lib/organization-members.ts` (`server-only`, usa la Admin API con
+  service_role) para resolver nombre/email — necesario para el selector de
+  entrenador al crear una clase. Es genérico, no específico de 8.8; se
+  reutilizará cuando se construya 8.9 (gestión de equipo).
+- **Regeneración de sesiones al editar una clase**: NO se regeneran las
+  `class_sessions` futuras al editar el horario de una clase (podría
+  duplicar sesiones con reservas ya hechas). TODO anotado en el código
+  para confirmar con el cliente el comportamiento deseado.
+- **"Sonido" del kiosco** (CLAUDE.md pide "sonido/color verde/rojo"): se
+  implementó con un beep sintetizado vía Web Audio API (sin archivos de
+  audio) — un tono agudo para éxito, grave para rechazo.
+
+### Lo construido
+- `attendance`, `classes`, `class_sessions`, `class_bookings` (migraciones
+  `20260821000005`/`000006`), esquema literal de CLAUDE.md §5, con RLS.
+- `/[orgSlug]/checkin`: kiosco público con cámara (`html5-qrcode`),
+  pantalla grande verde/rojo + beep, mensaje "Membresía vencida, contacta
+  a recepción" cuando corresponde (CLAUDE.md §6.5 exacto).
+- `/[orgSlug]/dashboard/asistencia`: check-in manual (staff), gráfico de
+  check-ins por día (14 días) y horas pico (`recharts`), ranking de
+  asistencia (30 días). Estados vacíos cuando no hay datos.
+- `/[orgSlug]/dashboard/clases`: CRUD con selector de días de la semana +
+  horario; al crear, genera automáticamente las `class_sessions` de las
+  próximas 8 semanas (`lib/classes/generate-sessions.ts`, con pruebas
+  unitarias). Activar/desactivar en vez de borrar (mismo patrón que
+  planes — preserva histórico).
+- `/[orgSlug]/dashboard/clases/calendario`: vista semanal, agrupa las
+  sesiones de la semana actual por día.
+- `/[orgSlug]/dashboard/clases/sesiones/[sessionId]`: reservar cupo para
+  un miembro (valida capacidad), marcar asistido/no asistió/cancelar.
+
+### Pruebas
+- `tests/unit/generate-sessions.test.ts` (3 pruebas): genera la cantidad
+  correcta de fechas, nunca en el pasado, en orden cronológico.
+- `tests/e2e/checkin.spec.ts`: siembra un miembro con membresía vigente y
+  otro sin ella, llama al endpoint público de check-in para ambos +uno con
+  QR inexistente, confirma que solo se registra 1 `attendance` (el válido)
+  y que el mensaje de rechazo es el que pide CLAUDE.md §6.5.
+- `tests/e2e/clases.spec.ts`: crea una clase que ocurre hoy, confirma que
+  aparece en el calendario semanal, reserva un cupo para un miembro desde
+  la sesión de hoy y marca su asistencia.
+- Suite completa tras Fase 4: **13 pruebas e2e + 6 unitarias, todas en verde.**
 
 ## Fase 5 — Portal del miembro + PWA
 Sección 7 + PWA. **Estado: ⬜ no empezado.**
@@ -540,7 +606,17 @@ de una fase fija:
     cuando Twilio no está configurado (probado explícitamente que NO tira
     500), plantillas editables por club, anuncio manual. 11 e2e + 3
     unitarias en verde.
-  - Siguiente paso: Fase 4 (módulos 8.7 control de acceso QR, 8.8 clases y
-    horarios) — necesita el rol `trainer` (ya existe en el schema desde
-    Fase 0) y probablemente el módulo 8.9 mínimo de gestión de staff para
-    poder asignar entrenadores a las clases.
+  - Fase 4 completada (módulos 8.7, 8.8): check-in QR como endpoint
+    público (el propio código QR es la credencial), kiosco con cámara +
+    feedback sonoro/visual, dashboard de asistencia con gráficos
+    (recharts), CRUD de clases con generación automática de sesiones (8
+    semanas), calendario semanal, reservas/asistencia de clases. Se agregó
+    `lib/organization-members.ts` para poder mostrar nombres de staff
+    (auth.users no es accesible vía RLS normal). 13 e2e + 6 unitarias en
+    verde.
+  - Siguiente paso: Fase 5 (sección 7 completa: portal del miembro
+    self-service, + configuración PWA con manifest.json instalable). El
+    portal reutiliza la mayoría de las policies de RLS "member self" que
+    ya se dejaron preparadas desde Fase 1-4 (members, memberships,
+    payments, classes, class_sessions, bank_accounts todas ya tienen su
+    policy de member-lee-lo-propio).
