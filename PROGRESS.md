@@ -35,7 +35,8 @@
 **FASE 3 — WhatsApp: ✅ completada.**
 **FASE 4 — Acceso y clases: ✅ completada.**
 **FASE 5 — Portal del miembro + PWA: ✅ completada.**
-**Siguiente: FASE 6 — Panel de plataforma y suscripción SaaS (módulos 8.11, 8.12).**
+**FASE 6 — Panel de plataforma y suscripción SaaS: ✅ completada.**
+**Siguiente: FASE 7 — Opcional / a futuro (Kushki/PayPhone, IA, gamificación, subdominios). No se avanza sola sin pedido explícito del cliente.**
 
 ---
 
@@ -612,7 +613,76 @@ estos huecos.
 - Suite completa tras Fase 5: **14 pruebas e2e + 6 unitarias, todas en verde.**
 
 ## Fase 6 — Panel de plataforma y suscripción SaaS
-Módulos 8.11, 8.12. **Estado: ⬜ no empezado.**
+Módulos 8.11, 8.12. **Estado: ✅ completa.**
+
+### 🐛 Bug real encontrado (mismo patrón de siempre — GRANT faltante)
+Tercera vez que aparece esta clase de bug en el proyecto (ver Fase 0 y su
+"lección para futuras migraciones"): la migración de `platform_payments`
+otorgaba `select, insert` a `authenticated` pero **no `update`**, aunque sí
+existía la policy RLS de UPDATE para `platform_admin`. Un platform_admin
+real haciendo clic en "Aprobar" en `/admin/pagos` habría recibido un 403
+("permission denied for table platform_payments") sin ninguna pista en la
+UI del motivo. Encontrado probando el flujo end-to-end (owner registra el
+pago → platform_admin lo aprueba), no por revisión de código. Corregido en
+la propia migración (`grant select, insert, update`).
+**Nota para el futuro**: esto ya pasó 3 veces (Fase 0: `organizations`/etc.,
+Fase 6: `platform_payments`) — antes de dar una tabla nueva por terminada,
+listar explícitamente qué operaciones (select/insert/update/delete) necesita
+cada rol y verificar que el `grant` las cubra TODAS, no solo las que la
+policy RLS menciona.
+
+### Decisiones documentadas
+- **`platform_payments`** (no está en CLAUDE.md §5): CLAUDE.md §8.11 dice
+  textualmente "si hay duda, usar una tabla platform_payments calcada de
+  payments" — se hizo exactamente eso.
+- **Cambiar de plan = pagar el nuevo plan**: no hay un botón "cambiar de
+  plan" separado del flujo de pago — el owner elige el plan deseado al
+  registrar el pago de su suscripción, y `approve_platform_payment` mueve
+  `organization_subscriptions.plan_id` al aprobarse. Evita dar un plan
+  más caro gratis y es coherente con cómo ya funciona el resto del sistema
+  (todo pasa por aprobación).
+- **Comprobantes de suscripción reutilizan el bucket `payment-proofs`**
+  (path `{organization_id}/{archivo}`, sin segmento de member) en vez de
+  crear un bucket nuevo — las policies existentes de staff ya lo permiten
+  (solo validan el primer segmento contra el rol). Se agregó una policy
+  para que `platform_admin` también pueda leerlos (no tiene por qué
+  pertenecer al club para revisar su comprobante).
+- **`suspend_past_due_organizations()`** implementa la regla §6.7 (>7 días
+  en `past_due` → `suspended`) como función de Postgres llamada desde
+  `/api/cron/suspend-organizations` (nuevo cron diario en `vercel.json`,
+  11:00 UTC) — mismo patrón que los demás cron jobs del proyecto.
+- **Primer `platform_admin`**: no existe (ni debería existir) una pantalla
+  de alta pública para esto — es una cuenta de "modo dios" del dueño de la
+  plataforma SaaS. Se crea manualmente con SQL:
+  `insert into platform_admins (id) values ('<user_id_de_auth.users>');`
+  después de que esa persona se registre una vez como usuario normal. Ver
+  "Pendientes que requieren al usuario" más abajo.
+- **Login redirige a `/admin` primero** si el usuario es platform_admin
+  (antes de chequear clubes de staff/portal) — es la identidad principal
+  de esa cuenta.
+
+### Lo construido
+- `/[orgSlug]/dashboard/configuracion/suscripcion` (solo owner, redirige si
+  no lo es): plan actual, vigencia, formulario de pago/cambio de plan,
+  historial.
+- `/admin` (guardado por `platform_admins`, redirige a `/` si no lo es):
+  resumen con MRR, clubes activos, en prueba, y "churn" (suspendidos +
+  cancelados — **simplificado**: es un conteo, no una tasa de churn en el
+  tiempo; anotado como posible mejora futura, no pedido con precisión por
+  CLAUDE.md). `/admin/clubes` (lista + suspender/reactivar).
+  `/admin/pagos` (bandeja de aprobación de pagos de suscripción, mismo
+  patrón que 8.5). `/admin/planes` (CRUD de `subscription_plans`).
+
+### Pruebas
+- `tests/e2e/admin.spec.ts`: un club real se registra vía UI, su owner
+  registra el pago de su suscripción, se siembra un `platform_admin` (sin
+  UI, como corresponde), ese admin entra y cae directo en `/admin`, ve el
+  club en la lista, aprueba el pago (encontró el bug de GRANT), y suspende
+  el club. Los asserts de estado se escoparon a la fila del club de esta
+  prueba específica (`getByRole("row", {name: ...})`) tras una falla
+  intermitente por texto genérico ("Aprobado") matcheando filas de
+  corridas anteriores — lección de higiene de tests reutilizable.
+- Suite completa tras Fase 6: **15 pruebas e2e + 6 unitarias, todas en verde.**
 
 ## Fase 7 — Opcional / a futuro
 Kushki/PayPhone, IA (8.14), gamificación (8.15), subdominios. **Estado: ⬜ no empezado.**
@@ -644,6 +714,11 @@ de una fase fija:
 3. Cuenta Twilio WhatsApp Business (Fase 3) — verificación de negocio puede tardar días, hay que iniciarla cuanto antes.
 4. Cuentas Kushki/PayPhone (Fase 7, opcional).
 5. Dominio final si se decide reemplazar el placeholder "GestorClub".
+6. Crear el primer `platform_admin` real: registrar una cuenta normal
+   (email/password) y luego correr
+   `insert into platform_admins (id) values ('<user_id>');` contra la base
+   de datos de producción — no hay (ni debe haber) una pantalla pública
+   para esto.
 
 ---
 
@@ -695,7 +770,17 @@ de una fase fija:
     member de portal (rompía todo el portal), y `/manifest.webmanifest`+
     `/sw.js` quedaban bloqueados por el middleware de auth para
     visitantes sin sesión. 14 e2e + 6 unitarias en verde.
-  - Siguiente paso: Fase 6 (módulos 8.11 suscripción SaaS del propio club,
-    8.12 panel super-admin de la plataforma) — necesario recién cuando se
-    quiera vender a más de un club; `platform_admins` y
-    `subscription_plans` ya existen desde Fase 0.
+  - Fase 6 completada (módulos 8.11, 8.12): suscripción SaaS del club
+    (pagar/cambiar de plan reutilizando el flujo de aprobación), panel
+    super-admin completo (resumen con MRR, clubes, pagos, planes). Tercer
+    bug de GRANT faltante del proyecto (`platform_payments` sin `update`
+    para `authenticated`) — mismo patrón que Fase 0, documentado con una
+    nota explícita para dejar de repetirlo. 15 e2e + 6 unitarias en verde.
+  - **Con esto, todas las fases obligatorias de CLAUDE.md §14 (Fase 0 a
+    Fase 6) están completas.** Solo queda Fase 7, explícitamente opcional
+    y "a futuro" — no se construye sin que el cliente lo pida
+    (CLAUDE.md §14: "Pasarela de pago automática... IA... gamificación...
+    subdominios"). Siguiente sesión: revisar con el usuario si quiere
+    seguir con algo de Fase 7, pulir DoD pendientes (viewport móvil real,
+    más pruebas), o pasar a preparar el deploy real (Vercel + Supabase
+    hosted + Twilio).
