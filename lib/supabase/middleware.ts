@@ -48,7 +48,7 @@ export async function updateSession(request: NextRequest) {
 
   // Validación de pertenencia a organización para rutas /[orgSlug]/...
   const orgSlugMatch = pathname.match(
-    /^\/(?!auth|admin|api|_next)([^/]+)(\/dashboard|\/portal|\/checkin)/
+    /^\/(?!auth|admin|api|_next)([^/]+)(\/dashboard|\/portal|\/checkin|\/onboarding)/
   );
   if (user && orgSlugMatch) {
     const orgSlug = orgSlugMatch[1];
@@ -72,8 +72,11 @@ export async function updateSession(request: NextRequest) {
 
     // El portal permite además el acceso de un member.user_id sin fila en
     // organization_members (miembros no son staff). Esa validación específica
-    // se hace en cada route/página del portal, aquí solo protegemos /dashboard.
-    if (pathname.includes("/dashboard") && !membership) {
+    // se hace en cada route/página del portal, aquí solo protegemos
+    // /dashboard y /onboarding (ambos son de staff, no del portal member).
+    const requiresStaffMembership =
+      pathname.includes("/dashboard") || pathname.includes("/onboarding");
+    if (requiresStaffMembership && !membership) {
       return new NextResponse("No autorizado para este club", { status: 403 });
     }
   }
