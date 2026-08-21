@@ -34,7 +34,8 @@
 **FASE 2 — Cobros: ✅ completada.**
 **FASE 3 — WhatsApp: ✅ completada.**
 **FASE 4 — Acceso y clases: ✅ completada.**
-**Siguiente: FASE 5 — Portal del miembro + PWA.**
+**FASE 5 — Portal del miembro + PWA: ✅ completada.**
+**Siguiente: FASE 6 — Panel de plataforma y suscripción SaaS (módulos 8.11, 8.12).**
 
 ---
 
@@ -536,7 +537,79 @@ Módulos 8.7, 8.8. **Estado: ✅ completa.**
 - Suite completa tras Fase 4: **13 pruebas e2e + 6 unitarias, todas en verde.**
 
 ## Fase 5 — Portal del miembro + PWA
-Sección 7 + PWA. **Estado: ⬜ no empezado.**
+Sección 7 + PWA. **Estado: ✅ completa.**
+
+### 🐛 Bug real encontrado y corregido
+La policy de SELECT de `organizations` (de Fase 0) solo dejaba ver un club
+a quien tuviera fila en `organization_members` (staff). Un member de
+portal (sin esa fila) **no podía leer ni el nombre de su propio club** —
+rompía el portal entero, tanto el lookup directo
+(`lib/portal/get-current-member.ts`) como cualquier `organizations(...)`
+embebido desde `members`. El síntoma no fue un error explícito: PostgREST
+devuelve `null` en el objeto embebido cuando RLS no lo deja ver, así que
+lo que se veía era "no se encontró ningún club" en el selector post-login.
+Se agregó `organizations_select_own_as_member` (migración `20260821000008`).
+**Se encontró probando el flujo real de principio a fin**, no por
+inspección de código — otra confirmación de que probar cada RLS nueva con
+el "usuario más nuevo posible" (acá, un member recién creado sin ninguna
+otra fila relacionada) sigue siendo la única forma confiable de encontrar
+estos huecos.
+
+### Decisiones documentadas
+- **Login redirige según el tipo de vínculo**: `app/auth/actions.ts`
+  ahora junta `organization_members` (staff → `/dashboard`) y `members`
+  (member → `/portal`) — un mismo usuario podría en teoría ser ambas cosas
+  en clubes distintos. El selector (`/auth/seleccionar-club`) muestra
+  ambos tipos con una etiqueta ("Panel de administración" / "Mi portal").
+- **Middleware**: `/[orgSlug]/portal/**` ahora se valida explícitamente
+  contra `members.user_id` (antes quedaba como "TODO, se valida en cada
+  página" — se corrigió para que la defensa en profundidad sea real desde
+  el middleware, no delegada).
+- **Registrar un pago desde el portal** reutiliza el mismo patrón
+  "renovar vs. plan nuevo" que ya tenía el dashboard de staff (8.5), y el
+  mismo `approve_payment`/RLS — el member solo necesitaba policies nuevas
+  de INSERT (`payments_insert_self`, `class_bookings_insert_self`/`_update_self`,
+  y las de `storage.objects` para `payment-proofs` con convención de path
+  `{organization_id}/{member_id}/{archivo}`, la misma que ya usaba el
+  registro de pagos de staff (se le ajustó el path para que coincidiera).
+- **PWA sin librería** (`next-pwa`/Serwist): dado lo reciente de Next.js
+  16 y el riesgo de incompatibilidad con Turbopack, se armó a mano —
+  `app/manifest.ts` (convención nativa de Next, genera
+  `/manifest.webmanifest`), `public/sw.js` (service worker simple,
+  network-first para navegación + cache-first para assets estáticos, sin
+  dependencias), iconos PNG generados con un script de una sola vez
+  (`zlib` nativo de Node, sin librerías de imagen) como placeholder sólido
+  del color de marca por defecto — **reemplazar por el logo real cuando
+  el cliente lo tenga**.
+- **Otro bug del mismo estilo encontrado con la PWA**: `/manifest.webmanifest`
+  y `/sw.js` quedaban detrás del middleware de autenticación (cualquier
+  visitante sin sesión —el caso normal para instalar la PWA desde la
+  landing— recibía un redirect a `/auth/login` en vez del manifest/service
+  worker). Agregadas a las rutas públicas del middleware.
+
+### Lo construido (sección 7)
+- `/[orgSlug]/portal`: estado de membresía (activa/no, días restantes,
+  plan, fecha de vencimiento).
+- `/[orgSlug]/portal/pagos`: instrucciones de transferencia (cuenta activa
+  del club), formulario para subir comprobante (renovar o plan nuevo),
+  historial de pagos propios.
+- `/[orgSlug]/portal/qr`: su código QR (mismo componente server-side que ya
+  se usaba en el dashboard) + botón de descarga.
+- `/[orgSlug]/portal/clases`: próximos 14 días de sesiones, reservar/cancelar
+  cupo (valida capacidad).
+- `/[orgSlug]/portal/asistencia`: su propio historial de check-ins.
+- `/[orgSlug]/portal/perfil`: editar teléfono/correo/contacto de emergencia.
+
+### Pruebas
+- `tests/e2e/portal.spec.ts`: crea club/plan/miembro/clase por REST, crea
+  el usuario de `auth.users` directo vía Admin API (equivalente a que ya
+  hubiera aceptado la invitación — ese flujo de invitación en sí ya se
+  prueba en `login.spec.ts`/`registro.spec.ts` vía el mecanismo compartido
+  de `/auth/actualizar-password`), inicia sesión como ese miembro, verifica
+  que cae directo en su portal (no en un dashboard), ve su membresía,
+  descarga su QR, reserva una clase de hoy, y edita su perfil. Fue esta
+  prueba la que encontró el bug de `organizations_select_own_as_member`.
+- Suite completa tras Fase 5: **14 pruebas e2e + 6 unitarias, todas en verde.**
 
 ## Fase 6 — Panel de plataforma y suscripción SaaS
 Módulos 8.11, 8.12. **Estado: ⬜ no empezado.**
@@ -614,9 +687,15 @@ de una fase fija:
     `lib/organization-members.ts` para poder mostrar nombres de staff
     (auth.users no es accesible vía RLS normal). 13 e2e + 6 unitarias en
     verde.
-  - Siguiente paso: Fase 5 (sección 7 completa: portal del miembro
-    self-service, + configuración PWA con manifest.json instalable). El
-    portal reutiliza la mayoría de las policies de RLS "member self" que
-    ya se dejaron preparadas desde Fase 1-4 (members, memberships,
-    payments, classes, class_sessions, bank_accounts todas ya tienen su
-    policy de member-lee-lo-propio).
+  - Fase 5 completada (sección 7 + PWA): portal del miembro completo
+    (membresía, pagos propios, QR, clases, asistencia, perfil), PWA
+    instalable armada a mano (sin next-pwa/Serwist por riesgo de
+    incompatibilidad con Next 16). Se encontraron y corrigieron dos bugs
+    reales probando end-to-end: `organizations` no era legible por un
+    member de portal (rompía todo el portal), y `/manifest.webmanifest`+
+    `/sw.js` quedaban bloqueados por el middleware de auth para
+    visitantes sin sesión. 14 e2e + 6 unitarias en verde.
+  - Siguiente paso: Fase 6 (módulos 8.11 suscripción SaaS del propio club,
+    8.12 panel super-admin de la plataforma) — necesario recién cuando se
+    quiera vender a más de un club; `platform_admins` y
+    `subscription_plans` ya existen desde Fase 0.
