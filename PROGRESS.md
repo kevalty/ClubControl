@@ -29,8 +29,9 @@
 
 ## Resumen de fase actual
 
-**FASE 0 — Setup: ✅ completada.** Lista para empezar Fase 1 (módulos 8.1-8.4)
-en la próxima sesión/turno.
+**FASE 0 — Setup: ✅ completada.**
+**FASE 1 — Núcleo administrativo: ✅ completada.**
+**Siguiente: FASE 2 — Cobros (módulo 8.5).**
 
 ---
 
@@ -160,7 +161,10 @@ sí correspondería un test automatizado real, no un script SQL suelto.
 ---
 
 ## Fase 1 — Núcleo administrativo (MVP mínimo usable)
-Módulos 8.1, 8.2, 8.3, 8.4. **Estado: 🚧 en progreso (8.1 y 8.4 listos; 8.2 parcial desde Fase 0; 8.3 siguiente).**
+Módulos 8.1, 8.2, 8.3, 8.4. **Estado: ✅ completa.** Un dueño de club puede
+registrarse, completar el onboarding, crear planes y administrar miembros —
+todo probado con Playwright contra Supabase local. Sin pagos ni WhatsApp
+todavía (eso es Fase 2 y 3), tal como pide CLAUDE.md §14.
 
 ### 8.1 Registro y onboarding — ✅ completo y probado end-to-end
 - `/auth/registro`: formulario real (nombre club, nombre dueño, email,
@@ -251,14 +255,66 @@ listan en detalle porque el patrón se repite en otras tablas nuevas:
   `toast.error(...)` desde cualquier client component (usado en
   `plan-activo-toggle.tsx`).
 
-### 8.2 Auth y roles — parcial (login básico desde Fase 0)
-- ✅ Login funcional (Fase 0). ✅ Middleware protege `/dashboard` y
-  `/onboarding` verificando `organization_members.status = 'active'`.
-- ⬜ Recuperación de contraseña (`/auth/recuperar` sigue siendo placeholder).
-- ⬜ Selector de club para usuarios que pertenecen a más de una organización.
-- Se retoma al terminar 8.3.
+### 8.2 Auth y roles — ✅ completo
+- Login funcional (Fase 0). Middleware protege `/dashboard` y `/onboarding`
+  verificando `organization_members.status = 'active'`.
+- Recuperación de contraseña: `/auth/recuperar` (pide correo, siempre
+  responde el mismo mensaje de éxito para no filtrar qué correos existen) →
+  `/auth/actualizar-password` (client component: el link del correo trae la
+  sesión en el fragmento de la URL `#access_token=...`, que el navegador
+  procesa solo — por eso esa página específica no puede ser server
+  component). Localmente el correo se ve en Mailpit (`supabase status` →
+  `MAILPIT_URL`, http://127.0.0.1:54324) sin necesitar Resend configurado.
+  **Para producción**: hay que configurar el SMTP de Supabase Auth
+  (`[auth.email.smtp]` en `supabase/config.toml`, o el dashboard del
+  proyecto hosted) para que use Resend con `RESEND_API_KEY` — sin esto los
+  correos de recuperación no van a salir realmente.
+- Selector de club (`/auth/seleccionar-club`): tras iniciar sesión,
+  `app/auth/actions.ts` cuenta cuántos `organization_members` activos tiene
+  el usuario — 1 → entra directo a `/{slug}/dashboard`; más de 1 → ve el
+  selector; 0 → se queda en la landing (todavía no hay portal de member,
+  eso es Fase 5).
+- `supabase/config.toml`: `site_url` se cambió a `http://localhost:3000`
+  (antes `127.0.0.1`) para que coincida con la URL que usan tanto la app
+  (`.env.local`) como los tests de Playwright — si no coinciden
+  exactamente, Supabase Auth rechaza el `redirectTo` del correo de
+  recuperación silenciosamente.
+- **Prueba automatizada**: `tests/e2e/login.spec.ts` ahora también cubre
+  registro → completar onboarding → cerrar sesión → volver a entrar → cae
+  directo en `/dashboard` (caso de un solo club).
 
-### 8.3 Gestión de miembros — ⬜ siguiente paso de esta sesión
+### 8.3 Gestión de miembros — ✅ completo
+- `/[orgSlug]/dashboard/miembros`: listado con búsqueda (nombre, teléfono,
+  cédula vía `ilike` con `.or()`) y filtro por estado, estados
+  vacío/error, exportar a CSV (`/miembros/export`, route handler con BOM
+  UTF-8 para que Excel en Windows muestre bien los acentos).
+- Crear/editar (`/nuevo`, `/[memberId]/editar`, formulario compartido
+  `miembro-form.tsx`).
+- Detalle (`/[memberId]`): datos personales, histórico de membresías (join
+  con `membership_plans`), placeholders con TODO para pagos (Fase 2) y
+  asistencia (Fase 4) ya que esas tablas todavía no tienen datos que mostrar.
+- Acciones rápidas: Congelar/Reactivar (pausa `member.status` y las
+  `memberships` activas — **TODO anotado en el código**: no extiende
+  `end_date` automáticamente por los días congelados, confirmar con
+  cliente si hace falta). Generar/reenviar acceso al portal (Admin API de
+  Supabase, mismo patrón que la invitación de staff de 8.1). Eliminar
+  (solo owner/admin, con diálogo de confirmación, auditado en
+  `audit_logs` **antes** de borrar porque el `entity_id` deja de existir
+  después del delete en cascada).
+- **Prueba automatizada**: `tests/e2e/miembros.spec.ts` — crea club, crea
+  miembro, lo busca, ve su detalle, congela y reactiva su membresía. Pasa.
+
+### Checklist de Definition of Done (CLAUDE.md §15) para 8.1-8.4
+1. Migraciones + RLS aplicadas y probadas explícitamente (Fase 0 y esta
+   sesión) ✅. 2. Estados cargando/vacío/error/éxito cubiertos en listados y
+   formularios ✅ (loading vía `pending` de `useActionState`/`useTransition`).
+   3. Mobile: se usaron utilidades responsive de Tailwind en todo (grid/flex
+   que colapsan), pero **no se verificó visualmente en un viewport angosto
+   real** (no se abrió un navegador a mirar la pantalla, solo Playwright
+   headless) — pendiente una pasada visual manual. 4. Acciones sensibles en
+   `audit_logs`: creación de organización, eliminar miembro, otorgar acceso
+   a portal ✅. 5. Prueba automatizada por módulo ✅ (Playwright). 6. Sin
+   texto en inglés visible ✅ (revisado a simple vista, no exhaustivo).
 
 ## Fase 2 — Cobros
 Módulo 8.5 (transferencia bancaria) + reglas §6.1-6.4. **Estado: ⬜ no empezado.**
@@ -309,13 +365,25 @@ de una fase fija:
 ---
 
 ## Log de sesiones
-- **2026-08-20**: Sesión inicial. Se leyó CLAUDE.md completo. Fase 0
-  completada de punta a punta: scaffold Next.js/Tailwind/shadcn, Supabase
-  local funcionando vía Docker, migraciones + RLS de
-  `organizations`/`organization_subscriptions`/`organization_members`/
-  `members`/`platform_admins`/`subscription_plans`, aislamiento multi-tenant
-  verificado manualmente (y un bug real de `GRANT` faltante encontrado y
-  corregido en el proceso), auth básica funcionando, build limpio, 3
-  commits. Siguiente paso: empezar Fase 1 (módulos 8.1 registro/onboarding,
-  8.2 auth y roles completos, 8.3 gestión de miembros, 8.4 planes de
-  membresía).
+- **2026-08-20**: Sesión inicial. Se leyó CLAUDE.md completo.
+  - Fase 0 completada de punta a punta: scaffold Next.js/Tailwind/shadcn,
+    Supabase local vía Docker, migraciones + RLS de
+    `organizations`/`organization_subscriptions`/`organization_members`/
+    `members`/`platform_admins`/`subscription_plans`, aislamiento
+    multi-tenant verificado manualmente (bug de `GRANT` faltante
+    encontrado y corregido), auth básica, build limpio.
+  - Fase 1 completada de punta a punta (módulos 8.1, 8.2, 8.3, 8.4):
+    registro/onboarding de club (wizard de 3 pasos), planes de membresía
+    (CRUD), gestión de miembros (listado con búsqueda/filtros, CRUD,
+    detalle, congelar/reactivar, acceso a portal, exportar CSV),
+    recuperación de contraseña y selector de club multi-org. Se montó
+    infraestructura de testing real (`vitest` + `Playwright`) y se
+    encontraron/corrigieron dos bugs reales de RLS durante las pruebas
+    (visibilidad de `RETURNING` antes de tener membresía, y recursión
+    infinita de policy) — ambos documentados en detalle arriba porque el
+    patrón se puede repetir en tablas futuras. 5 pruebas e2e y 3 unitarias,
+    todas en verde. 15 commits en total en la sesión.
+  - Siguiente paso: Fase 2 (módulo 8.5, cobros por transferencia bancaria +
+    bandeja de aprobación + reglas de negocio §6.1-6.4) — es "el corazón
+    del valor del producto" según CLAUDE.md, no se avanza a Fase 3 sin esto
+    funcionando end-to-end.
