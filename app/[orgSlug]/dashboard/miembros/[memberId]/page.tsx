@@ -4,6 +4,10 @@ import { LinkButton } from "@/components/ui/link-button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MEMBER_STATUS_LABELS } from "@/lib/validations/member";
+import {
+  PAYMENT_METHOD_LABELS,
+  PAYMENT_STATUS_LABELS,
+} from "@/lib/validations/payment";
 import { MiembroAcciones } from "@/app/[orgSlug]/dashboard/miembros/[memberId]/miembro-acciones";
 
 export default async function MiembroDetallePage({
@@ -43,6 +47,12 @@ export default async function MiembroDetallePage({
     .order("start_date", { ascending: false });
 
   const tieneMembresiaActiva = (memberships ?? []).some((m) => m.status === "active");
+
+  const { data: payments } = await supabase
+    .from("payments")
+    .select("id, amount, method, status, created_at")
+    .eq("member_id", memberId)
+    .order("created_at", { ascending: false });
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -142,11 +152,15 @@ export default async function MiembroDetallePage({
           )}
           {!tieneMembresiaActiva ? (
             <p className="mt-2 text-xs text-muted-foreground">
-              {/* TODO: módulo 8.5 (Fase 2) agregará "Registrar pago" acá,
-              que crea la membresía automáticamente al aprobarse. Por ahora
-              no hay forma de asignar una membresía desde la UI. */}
-              Aún no se puede asignar una membresía manualmente desde aquí —
-              eso llega junto con el módulo de pagos (Fase 2).
+              Sin membresía activa.{" "}
+              <LinkButton
+                href={`/${orgSlug}/dashboard/pagos/nuevo`}
+                variant="link"
+                className="h-auto p-0"
+              >
+                Registrar un pago
+              </LinkButton>{" "}
+              le crea una al aprobarse.
             </p>
           ) : null}
         </CardContent>
@@ -156,10 +170,29 @@ export default async function MiembroDetallePage({
         <CardHeader>
           <CardTitle className="text-base">Pagos</CardTitle>
         </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          {/* TODO(Fase 2, módulo 8.5): historial real de payments. */}
-          El historial de pagos estará disponible cuando se implemente el
-          módulo de cobros.
+        <CardContent>
+          {!payments || payments.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Este miembro todavía no tiene pagos registrados.
+            </p>
+          ) : (
+            <ul className="divide-y">
+              {payments.map((p) => (
+                <li key={p.id} className="flex items-center justify-between py-2 text-sm">
+                  <span>
+                    ${Number(p.amount).toFixed(2)} —{" "}
+                    {PAYMENT_METHOD_LABELS[p.method] ?? p.method}{" "}
+                    <span className="text-muted-foreground">
+                      ({new Date(p.created_at).toLocaleDateString("es-EC")})
+                    </span>
+                  </span>
+                  <Badge variant={p.status === "approved" ? "default" : "secondary"}>
+                    {PAYMENT_STATUS_LABELS[p.status] ?? p.status}
+                  </Badge>
+                </li>
+              ))}
+            </ul>
+          )}
         </CardContent>
       </Card>
 

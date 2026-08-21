@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 const NAV_ITEMS = [
   { href: "miembros", label: "Miembros" },
   { href: "planes", label: "Planes" },
+  { href: "pagos", label: "Pagos" },
+  { href: "configuracion/pagos", label: "Cuentas bancarias" },
 ];
 
 export default async function DashboardLayout({

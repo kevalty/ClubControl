@@ -78,6 +78,50 @@ export type Database = {
           },
         ]
       }
+      bank_accounts: {
+        Row: {
+          account_holder_document: string
+          account_holder_name: string
+          account_number: string
+          account_type: string
+          bank_name: string
+          created_at: string
+          id: string
+          is_active: boolean
+          organization_id: string
+        }
+        Insert: {
+          account_holder_document: string
+          account_holder_name: string
+          account_number: string
+          account_type: string
+          bank_name: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          organization_id: string
+        }
+        Update: {
+          account_holder_document?: string
+          account_holder_name?: string
+          account_number?: string
+          account_type?: string
+          bank_name?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_accounts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       members: {
         Row: {
           birth_date: string | null
@@ -391,6 +435,156 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_reminders: {
+        Row: {
+          channel: string
+          error_message: string | null
+          id: string
+          member_id: string
+          organization_id: string
+          payment_id: string | null
+          scheduled_at: string
+          sent_at: string | null
+          status: string
+          template_key: string
+        }
+        Insert: {
+          channel?: string
+          error_message?: string | null
+          id?: string
+          member_id: string
+          organization_id: string
+          payment_id?: string | null
+          scheduled_at: string
+          sent_at?: string | null
+          status?: string
+          template_key: string
+        }
+        Update: {
+          channel?: string
+          error_message?: string | null
+          id?: string
+          member_id?: string
+          organization_id?: string
+          payment_id?: string | null
+          scheduled_at?: string
+          sent_at?: string | null
+          status?: string
+          template_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_reminders_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_reminders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_reminders_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          due_date: string | null
+          gateway_transaction_id: string | null
+          id: string
+          member_id: string
+          membership_id: string | null
+          method: string
+          organization_id: string
+          paid_at: string | null
+          plan_id: string | null
+          proof_url: string | null
+          reference_number: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          due_date?: string | null
+          gateway_transaction_id?: string | null
+          id?: string
+          member_id: string
+          membership_id?: string | null
+          method: string
+          organization_id: string
+          paid_at?: string | null
+          plan_id?: string | null
+          proof_url?: string | null
+          reference_number?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          due_date?: string | null
+          gateway_transaction_id?: string | null
+          id?: string
+          member_id?: string
+          membership_id?: string | null
+          method?: string
+          organization_id?: string
+          paid_at?: string | null
+          plan_id?: string | null
+          proof_url?: string | null
+          reference_number?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: false
+            referencedRelation: "memberships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "membership_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_admins: {
         Row: {
           created_at: string
@@ -442,12 +636,48 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_templates: {
+        Row: {
+          content: string
+          id: string
+          is_active: boolean
+          key: string
+          organization_id: string | null
+        }
+        Insert: {
+          content: string
+          id?: string
+          is_active?: boolean
+          key: string
+          organization_id?: string | null
+        }
+        Update: {
+          content?: string
+          id?: string
+          is_active?: boolean
+          key?: string
+          organization_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      approve_payment: { Args: { p_payment_id: string }; Returns: undefined }
+      reject_payment: {
+        Args: { p_payment_id: string; p_reason?: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
