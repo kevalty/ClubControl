@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 // `asChild` de Radix para renderizar un <Link> con estilos de botón. Este
 // wrapper reemplaza `<Button asChild><Link>...</Link></Button>` en toda la app.
 type LinkButtonProps = LinkProps &
+  Omit<React.ComponentProps<"a">, keyof LinkProps> &
   VariantProps<typeof buttonVariants> & {
     className?: string;
     children: React.ReactNode;

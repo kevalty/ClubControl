@@ -9,6 +9,7 @@ import {
   PAYMENT_STATUS_LABELS,
 } from "@/lib/validations/payment";
 import { MiembroAcciones } from "@/app/[orgSlug]/dashboard/miembros/[memberId]/miembro-acciones";
+import { QrCodeCard } from "@/app/[orgSlug]/dashboard/miembros/[memberId]/qr-code-card";
 
 export default async function MiembroDetallePage({
   params,
@@ -21,7 +22,7 @@ export default async function MiembroDetallePage({
   const { data: member } = await supabase
     .from("members")
     .select(
-      "id, organization_id, full_name, email, phone, document_id, birth_date, status, join_date, user_id, emergency_contact_name, emergency_contact_phone, notes"
+      "id, organization_id, full_name, email, phone, document_id, birth_date, status, join_date, user_id, emergency_contact_name, emergency_contact_phone, notes, qr_code"
     )
     .eq("id", memberId)
     .maybeSingle();
@@ -122,6 +123,8 @@ export default async function MiembroDetallePage({
           ) : null}
         </CardContent>
       </Card>
+
+      <QrCodeCard qrCode={member.qr_code} />
 
       <Card>
         <CardHeader>

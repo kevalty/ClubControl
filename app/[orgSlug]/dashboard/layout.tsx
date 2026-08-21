@@ -8,6 +8,8 @@ const NAV_ITEMS = [
   { href: "miembros", label: "Miembros" },
   { href: "planes", label: "Planes" },
   { href: "pagos", label: "Pagos" },
+  { href: "asistencia", label: "Asistencia" },
+  { href: "clases", label: "Clases" },
   { href: "configuracion/pagos", label: "Cuentas bancarias" },
   { href: "configuracion/whatsapp", label: "Plantillas WhatsApp" },
   { href: "whatsapp/anuncio", label: "Enviar anuncio" },

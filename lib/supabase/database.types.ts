@@ -37,6 +37,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      attendance: {
+        Row: {
+          checked_in_at: string
+          checked_in_by: string | null
+          id: string
+          member_id: string
+          method: string
+          organization_id: string
+        }
+        Insert: {
+          checked_in_at?: string
+          checked_in_by?: string | null
+          id?: string
+          member_id: string
+          method?: string
+          organization_id: string
+        }
+        Update: {
+          checked_in_at?: string
+          checked_in_by?: string | null
+          id?: string
+          member_id?: string
+          method?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -115,6 +157,144 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "bank_accounts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_bookings: {
+        Row: {
+          booked_at: string
+          class_session_id: string
+          id: string
+          member_id: string
+          organization_id: string
+          status: string
+        }
+        Insert: {
+          booked_at?: string
+          class_session_id: string
+          id?: string
+          member_id: string
+          organization_id: string
+          status?: string
+        }
+        Update: {
+          booked_at?: string
+          class_session_id?: string
+          id?: string
+          member_id?: string
+          organization_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_bookings_class_session_id_fkey"
+            columns: ["class_session_id"]
+            isOneToOne: false
+            referencedRelation: "class_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_bookings_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_bookings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_sessions: {
+        Row: {
+          class_id: string
+          end_time: string
+          id: string
+          organization_id: string
+          session_date: string
+          start_time: string
+          status: string
+        }
+        Insert: {
+          class_id: string
+          end_time: string
+          id?: string
+          organization_id: string
+          session_date: string
+          start_time: string
+          status?: string
+        }
+        Update: {
+          class_id?: string
+          end_time?: string
+          id?: string
+          organization_id?: string
+          session_date?: string
+          start_time?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_sessions_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_sessions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      classes: {
+        Row: {
+          capacity: number
+          description: string | null
+          id: string
+          is_active: boolean
+          location: string | null
+          name: string
+          organization_id: string
+          recurrence_rule: Json
+          trainer_user_id: string | null
+        }
+        Insert: {
+          capacity?: number
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          name: string
+          organization_id: string
+          recurrence_rule: Json
+          trainer_user_id?: string | null
+        }
+        Update: {
+          capacity?: number
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          name?: string
+          organization_id?: string
+          recurrence_rule?: Json
+          trainer_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "classes_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"

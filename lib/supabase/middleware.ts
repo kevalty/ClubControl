@@ -38,7 +38,11 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/auth") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api/webhooks") ||
-    pathname.startsWith("/api/cron");
+    pathname.startsWith("/api/cron") ||
+    pathname.startsWith("/api/checkin") ||
+    // Modo kiosco (CLAUDE.md §8.7): tablet en la entrada, sin login. La
+    // credencial es el propio código QR de cada miembro, no una sesión.
+    pathname.endsWith("/checkin");
 
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
