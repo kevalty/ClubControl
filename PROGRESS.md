@@ -32,7 +32,8 @@
 **FASE 0 — Setup: ✅ completada.**
 **FASE 1 — Núcleo administrativo: ✅ completada.**
 **FASE 2 — Cobros: ✅ completada.**
-**Siguiente: FASE 3 — WhatsApp (módulo 8.6).**
+**FASE 3 — WhatsApp: ✅ completada.**
+**Siguiente: FASE 4 — Acceso y clases (módulos 8.7, 8.8).**
 
 ---
 
@@ -400,7 +401,70 @@ Módulo 8.5 (transferencia bancaria) + reglas §6.1-6.4. **Estado: ✅ completa.
 - Suite completa tras Fase 2: **9 pruebas e2e + 3 unitarias, todas en verde.**
 
 ## Fase 3 — WhatsApp
-Módulo 8.6. **Estado: ⬜ no empezado.**
+Módulo 8.6. Recordatorios automáticos conectados al job diario. **Estado: ✅ completa.**
+
+### Lo construido
+- `lib/whatsapp/twilio.ts`: envío vía REST de Twilio (sin instalar el SDK
+  `twilio`, es un solo POST con auth básica — menos dependencias). **Nunca
+  lanza** (`throw`): siempre devuelve `{ok:false, error}` si faltan las
+  env vars `TWILIO_*` o si Twilio responde error — así el cron puede
+  marcar el recordatorio como `failed` con `error_message` y seguir con
+  el resto, tal como pide CLAUDE.md §8.6 ("los envíos fallan
+  silenciosamente... hasta que se conecte la cuenta").
+- `lib/whatsapp/phone.ts`: normaliza teléfonos locales ecuatorianos
+  (`0999999999`) a E.164 (`+593999999999`) para WhatsApp.
+- `lib/whatsapp/templates.ts`: interpola `{{nombre}}`, `{{monto}}`,
+  `{{fecha_vencimiento}}`, `{{link_pago}}`, `{{club}}`.
+- **Agendado de recordatorios (§6.2)**: se movió a la propia función
+  `approve_payment` (migración `20260821000004`, reemplaza la de Fase 2)
+  — al aprobar un pago, además de la confirmación inmediata, agenda 5
+  filas más en `payment_reminders` relativas al nuevo `end_date`: -3 días
+  y el día mismo (`recordatorio_previo`), +1/+3/+7 días
+  (`recordatorio_vencido`). También cancela proactivamente cualquier
+  recordatorio de vencimiento que hubiera quedado agendado de una
+  membresía anterior del mismo miembro — así "si sigue sin pago aprobado"
+  (§6.2) se cumple sin que el cron de envío tenga que re-chequear nada en
+  el momento de enviar, solo procesa lo que sigue `scheduled`.
+- **Bienvenida**: al crear un miembro nuevo (8.3) se agenda un
+  `payment_reminders` con `template_key='bienvenida'` para envío inmediato.
+- `/api/cron/reminders`: procesa `payment_reminders` con
+  `status='scheduled'` y `scheduled_at <= now()`, resuelve la plantilla
+  (la propia del club si existe, si no la global), rellena variables y
+  envía. Protegido con `CRON_SECRET`. Agendado en `vercel.json` a las
+  13:00 UTC (~8am Ecuador, como pide CLAUDE.md).
+- `/[orgSlug]/dashboard/configuracion/whatsapp`: cada club puede
+  sobreescribir las 5 plantillas (crea una fila propia sin tocar la
+  global). Muestra una alerta explicando que sin una cuenta de WhatsApp
+  Business verificada los envíos van a fallar silenciosamente — y que la
+  verificación puede tardar días, para que el club la inicie cuanto antes
+  (tal como pide CLAUDE.md documentar).
+- `/[orgSlug]/dashboard/whatsapp/anuncio`: mensaje manual a todos los
+  miembros activos o filtrado por plan. Se envía **de inmediato** (no pasa
+  por `payment_reminders`/el cron) porque es una acción síncrona de "enviar
+  ahora", no un recordatorio programado.
+- Solo se implementó el proveedor **Twilio** (`WHATSAPP_PROVIDER=twilio`
+  es la única variante funcional); el valor `meta` de esa env var queda
+  reservado para cuando se migre a Meta Cloud API, tal como CLAUDE.md
+  describe como plan de fase 2/3 *del negocio* (no confundir con las Fases
+  de CLAUDE.md §14) — no se implementa ahora, sería scope creep.
+
+### Pruebas
+- `tests/e2e/whatsapp-reminders.spec.ts` (2 pruebas): (1) vía REST directo
+  con service_role, aprueba un pago y verifica que se agendan exactamente
+  las 6 filas esperadas (1 confirmación + 2 previos + 3 vencidos), corre
+  el cron, y confirma que sin `TWILIO_*` configurado el recordatorio queda
+  `failed` con un `error_message` que menciona "Twilio" — sin que el cron
+  tire 500. (2) desde la UI real: edita la plantilla de bienvenida, crea
+  un miembro, envía un anuncio manual y confirma que se muestra el
+  resultado ("Enviado a X de Y miembros").
+- Suite completa tras Fase 3: **11 pruebas e2e + 3 unitarias, todas en verde.**
+
+### Pendiente real (no se puede resolver sin el usuario)
+Para que los WhatsApp se envíen de verdad hace falta: una cuenta de
+Twilio con número de WhatsApp Business aprobado, y llenar
+`TWILIO_ACCOUNT_SID`/`TWILIO_AUTH_TOKEN`/`TWILIO_WHATSAPP_NUMBER` en el
+entorno de producción. Ya está en la lista de pendientes al final de este
+archivo.
 
 ## Fase 4 — Acceso y clases
 Módulos 8.7, 8.8. **Estado: ⬜ no empezado.**
@@ -470,8 +534,13 @@ de una fase fija:
     literal de §5 (`bank_accounts`, `payments.plan_id`) porque la sección
     no alcanza a cubrir esos casos — documentado en detalle arriba y en
     los propios archivos de migración.
-  - Siguiente paso: Fase 3 (módulo 8.6, recordatorios automáticos por
-    WhatsApp vía Twilio) — ya hay `payment_reminders` y `whatsapp_templates`
-    creados y poblándose (confirmación de pago, rechazo de comprobante)
-    desde Fase 2, solo falta el envío real y los recordatorios de
-    vencimiento (§6.2: 3 días antes, el día, y 1/3/7 días después).
+  - Fase 3 completada (módulo 8.6): integración Twilio (vía fetch directo,
+    sin SDK), agendado de los 6 recordatorios por membresía (§6.2) dentro
+    de `approve_payment`, cron de envío con fallo silencioso documentado
+    cuando Twilio no está configurado (probado explícitamente que NO tira
+    500), plantillas editables por club, anuncio manual. 11 e2e + 3
+    unitarias en verde.
+  - Siguiente paso: Fase 4 (módulos 8.7 control de acceso QR, 8.8 clases y
+    horarios) — necesita el rol `trainer` (ya existe en el schema desde
+    Fase 0) y probablemente el módulo 8.9 mínimo de gestión de staff para
+    poder asignar entrenadores a las clases.
