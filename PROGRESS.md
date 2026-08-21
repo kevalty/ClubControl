@@ -160,7 +160,105 @@ sí correspondería un test automatizado real, no un script SQL suelto.
 ---
 
 ## Fase 1 — Núcleo administrativo (MVP mínimo usable)
-Módulos 8.1, 8.2, 8.3, 8.4. **Estado: ⬜ no empezado.**
+Módulos 8.1, 8.2, 8.3, 8.4. **Estado: 🚧 en progreso (8.1 y 8.4 listos; 8.2 parcial desde Fase 0; 8.3 siguiente).**
+
+### 8.1 Registro y onboarding — ✅ completo y probado end-to-end
+- `/auth/registro`: formulario real (nombre club, nombre dueño, email,
+  teléfono, contraseña) → `app/auth/registro/actions.ts` (`registrarClub`).
+- Crea: `auth.users` (signUp), `organizations` (status `trial`,
+  `trial_ends_at` +14 días), `organization_members` (owner), busca el plan
+  `trial` en `subscription_plans` y crea `organization_subscriptions`, y un
+  `audit_logs` (`organization.created`).
+- Slug único: se genera con `lib/slug.ts` y, si hay colisión (Postgres
+  `23505`), reintenta con sufijo aleatorio (hasta 5 intentos).
+- Wizard de onboarding en `/[orgSlug]/onboarding` (`app/[orgSlug]/onboarding/`),
+  3 pasos como pide CLAUDE.md: (1) dirección + color de marca (logo se deja
+  para Configuración — TODO anotado en el código), (2) primer plan de
+  membresía, (3) invitar primer colaborador (**opcional**, botón "Saltar
+  por ahora").
+- Invitación de staff usa `supabase.auth.admin.inviteUserByEmail` (Admin
+  API, service_role) porque `organization_members.user_id` es `NOT NULL` —
+  no se puede crear la fila "invited" sin que exista ya el usuario en
+  `auth.users`. Página de aceptación de invitación real es del módulo 8.9
+  (sin fase numerada en CLAUDE.md, ver sección de pendientes).
+- **Prueba automatizada (Playwright, `tests/e2e/registro.spec.ts`)**: registra
+  un club con datos únicos, completa los 3 pasos del wizard, verifica que
+  termina en `/dashboard` y que el plan creado aparece en `/planes`. ✅ Pasa.
+
+### 🐛 Bugs reales encontrados y corregidos durante las pruebas de 8.1
+Los tres iban a romper el registro de **cualquier** club nuevo en cuanto se
+conectara la UI real — el `error.message` inicial que veía el usuario iba a
+ser genérico ("No se pudo crear el club") sin pista del problema real. Se
+listan en detalle porque el patrón se repite en otras tablas nuevas:
+
+1. **GRANT faltante** (ya documentado en Fase 0) — RLS sin `grant` de tabla
+   a `authenticated` deniega todo antes de evaluar las policies.
+2. **`INSERT ... RETURNING` sobre una fila que la propia policy de SELECT
+   todavía no deja ver**: el código original hacía
+   `.insert({...}).select("id, slug").single()` sobre `organizations`, pero
+   la policy de SELECT exige ya ser miembro del club — y ese vínculo
+   (`organization_members`) se crea recién en el paso siguiente. Postgres
+   reporta esto como si el INSERT violara RLS (mensaje idéntico al de un
+   `WITH CHECK` fallido), lo cual es engañoso. **Fix**: generar el `id` del
+   lado del cliente (`crypto.randomUUID()`) e insertar sin encadenar
+   `.select()`, ya que igualmente conocíamos el `slug` que estábamos
+   insertando. **Lección**: cualquier `.insert().select()` sobre una tabla
+   nueva hay que probarlo con el usuario "recién nacido" (sin membresías
+   todavía), no solo con un usuario ya establecido.
+3. **Recursión infinita de RLS (`42P17`)** en la policy de INSERT de
+   `organization_members`: la cláusula de "bootstrap" (permitir el primer
+   owner de un club nuevo) usaba una subconsulta directa
+   `not exists (select 1 from organization_members om where ...)` **contra
+   la misma tabla que la policy protege** — eso reevalúa la propia policy
+   para cada fila candidata de la subconsulta → recursión. **Fix**: se
+   extrajo a una función `security definer`
+   (`private.org_has_no_members(org_id)`), igual que ya se hacía con
+   `user_org_ids()`/`user_org_role()`. **Lección para toda policy futura**:
+   nunca hacer una subconsulta cruda contra la tabla que la propia policy
+   protege — siempre pasar por una función `security definer` en el schema
+   `private`.
+
+### 8.4 Planes de membresía — ✅ completo
+- `/[orgSlug]/dashboard/planes`: listado (tabla, estado vacío, badge
+  activo/inactivo), `/nuevo` y `/[planId]/editar` (formulario compartido en
+  `plan-form.tsx`).
+- "Eliminar" un plan en realidad lo desactiva (`is_active = false`) en vez
+  de borrarlo de la BD — `memberships.plan_id` referencia el plan y
+  borrarlo rompería el histórico de membresías ya vendidas. Se decidió sin
+  preguntar por ser la opción más simple y segura (CLAUDE.md instrucción
+  #5); el botón dice "Desactivar/Activar", no "Eliminar", para ser honesto
+  sobre el comportamiento real.
+- Reutiliza el mismo patrón de plan del paso 2 del onboarding.
+
+### Infraestructura de testing (requisito de CLAUDE.md §2)
+- `vitest` + `@testing-library/react` + `jsdom` instalados y configurados
+  (`vitest.config.ts`, `npm run test:unit`). Primera prueba real:
+  `tests/unit/slug.test.ts` (normalización de acentos, espacios, guiones).
+- `@playwright/test` instalado con Chromium (`playwright.config.ts`,
+  `npm run test:e2e`, arranca `npm run dev` solo si no hay uno corriendo).
+  `tests/e2e/login.spec.ts` (error de credenciales, redirect sin sesión) y
+  `tests/e2e/registro.spec.ts` (flujo completo 8.1+8.4). Todas pasan.
+- Nota de instalación: `npm install` de los paquetes de testing chocó con
+  peer deps de `shadcn`/Vite 8-rc (`ERESOLVE`); se instaló con
+  `--legacy-peer-deps`. No debería afectar producción (son solo devDependencies).
+
+### Componentes UI compartidos nuevos
+- `components/ui/link-button.tsx`: el `Button` de esta versión de shadcn
+  (`@base-ui/react`) **no soporta `asChild`** (a diferencia de Radix). Este
+  wrapper reemplaza `<Button asChild><Link>...</Link></Button>` en toda la
+  app — usarlo siempre que se necesite un enlace con pinta de botón.
+- `<Toaster />` (sonner) montado en `app/layout.tsx` para poder usar
+  `toast.error(...)` desde cualquier client component (usado en
+  `plan-activo-toggle.tsx`).
+
+### 8.2 Auth y roles — parcial (login básico desde Fase 0)
+- ✅ Login funcional (Fase 0). ✅ Middleware protege `/dashboard` y
+  `/onboarding` verificando `organization_members.status = 'active'`.
+- ⬜ Recuperación de contraseña (`/auth/recuperar` sigue siendo placeholder).
+- ⬜ Selector de club para usuarios que pertenecen a más de una organización.
+- Se retoma al terminar 8.3.
+
+### 8.3 Gestión de miembros — ⬜ siguiente paso de esta sesión
 
 ## Fase 2 — Cobros
 Módulo 8.5 (transferencia bancaria) + reglas §6.1-6.4. **Estado: ⬜ no empezado.**
@@ -181,6 +279,25 @@ Módulos 8.11, 8.12. **Estado: ⬜ no empezado.**
 Kushki/PayPhone, IA (8.14), gamificación (8.15), subdominios. **Estado: ⬜ no empezado.**
 
 ---
+
+## Nota sobre módulos sin fase numerada explícita
+CLAUDE.md §14 no asigna número de fase a los módulos 8.9 (staff/entrenadores),
+8.10 (dashboard con KPIs) y 8.13 (configuración general). Decisión tomada
+(instrucción #5 del propio CLAUDE.md — la más simple y razonable, anotada
+acá en vez de detener el desarrollo): se construyen en el momento en que sus
+prerequisitos ya existen y algún otro módulo los necesita de verdad, en vez
+de una fase fija:
+- 8.9 (invitar/gestionar staff): la parte de *crear* la invitación ya se
+  adelantó de forma mínima dentro del wizard de 8.1 (Fase 1). Falta la
+  página de gestión completa (`/equipo`) y el flujo de aceptación de
+  invitación — se completa cuando haga falta un segundo rol de staff real
+  probando el sistema, o al llegar a Fase 4 (asistencia/clases, que sí
+  necesita `trainer`).
+- 8.10 (KPIs del dashboard): necesita datos reales de pagos y asistencia
+  para que las gráficas tengan sentido — se construye en o después de Fase 2.
+- 8.13 (configuración general): es un contenedor de las secciones de
+  bancos (8.5), WhatsApp (8.6), equipo (8.9) y suscripción (8.11) — se arma
+  como layout de navegación cuando exista más de una de esas subpáginas.
 
 ## Pendientes que requieren al usuario (no se pueden resolver solos)
 1. Cuenta de Vercel para el deploy real (Fase 0 lo deja listo, pero no se despliega sin autorización).
