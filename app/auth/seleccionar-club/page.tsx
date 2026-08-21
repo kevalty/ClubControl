@@ -13,38 +13,49 @@ export default async function SeleccionarClubPage() {
     redirect("/auth/login");
   }
 
-  const { data: memberships } = await supabase
-    .from("organization_members")
-    .select("role, organizations(slug, name)")
-    .eq("user_id", userData.user.id)
-    .eq("status", "active");
+  const [{ data: staffMemberships }, { data: portalMemberships }] = await Promise.all([
+    supabase
+      .from("organization_members")
+      .select("organizations(slug, name)")
+      .eq("user_id", userData.user.id)
+      .eq("status", "active"),
+    supabase.from("members").select("organizations(slug, name)").eq("user_id", userData.user.id),
+  ]);
 
-  const clubes = (memberships ?? [])
-    .map((m) => ({
-      role: m.role,
+  const destinos = [
+    ...(staffMemberships ?? []).map((m) => ({
       ...(m.organizations as unknown as { slug: string; name: string } | null),
-    }))
-    .filter((c): c is { role: string; slug: string; name: string } => !!c.slug);
+      path: "dashboard",
+      label: "Panel de administración",
+    })),
+    ...(portalMemberships ?? []).map((m) => ({
+      ...(m.organizations as unknown as { slug: string; name: string } | null),
+      path: "portal",
+      label: "Mi portal",
+    })),
+  ].filter(
+    (d): d is { slug: string; name: string; path: string; label: string } => !!d.slug
+  );
 
-  if (clubes.length === 0) {
+  if (destinos.length === 0) {
     redirect("/");
   }
-  if (clubes.length === 1) {
-    redirect(`/${clubes[0].slug}/dashboard`);
+  if (destinos.length === 1) {
+    redirect(`/${destinos[0].slug}/${destinos[0].path}`);
   }
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-6 p-4">
-      <h1 className="text-2xl font-semibold">¿A qué club quieres entrar?</h1>
+      <h1 className="text-2xl font-semibold">¿A dónde quieres entrar?</h1>
       <div className="grid w-full max-w-sm gap-3">
-        {clubes.map((club) => (
-          <Card key={club.slug}>
+        {destinos.map((d) => (
+          <Card key={`${d.slug}-${d.path}`}>
             <CardHeader>
-              <CardTitle className="text-base">{club.name}</CardTitle>
+              <CardTitle className="text-base">{d.name}</CardTitle>
             </CardHeader>
             <CardContent>
-              <LinkButton href={`/${club.slug}/dashboard`} className="w-full">
-                Entrar
+              <LinkButton href={`/${d.slug}/${d.path}`} className="w-full">
+                {d.label}
               </LinkButton>
             </CardContent>
           </Card>

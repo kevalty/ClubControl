@@ -36,7 +36,10 @@ export async function registrarPago(
   let proofPath: string | null = null;
 
   if (proofFile && proofFile.size > 0) {
-    const path = `${orgId}/${memberId}-${Date.now()}.${proofFile.name.split(".").pop()}`;
+    // Convención de path: {organization_id}/{member_id}/{archivo} — permite
+    // que el member también pueda leer su propio comprobante desde el
+    // portal (Fase 5), sea quien sea que lo haya subido.
+    const path = `${orgId}/${memberId}/${Date.now()}.${proofFile.name.split(".").pop()}`;
     const { error: uploadError } = await supabase.storage
       .from("payment-proofs")
       .upload(path, proofFile);

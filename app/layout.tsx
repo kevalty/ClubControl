@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { PwaRegister } from "@/components/pwa-register";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,6 +18,11 @@ export const metadata: Metadata = {
   title: "GestorClub — Gestión de clubes deportivos",
   description:
     "Software de gestión para clubes deportivos, academias y gimnasios en Ecuador: miembros, pagos, recordatorios por WhatsApp y control de acceso.",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "GestorClub" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0EA5E9",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -28,6 +34,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         {children}
         <Toaster />
+        <PwaRegister />
       </body>
     </html>
   );

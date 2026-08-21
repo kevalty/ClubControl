@@ -17,30 +17,43 @@ export async function login(formData: FormData) {
   await redirigirSegunClubes(supabase);
 }
 
-// CLAUDE.md 8.2: si el usuario pertenece a más de un club, ve un selector
-// al entrar; si pertenece a uno solo, entra directo a su dashboard.
+// CLAUDE.md §8.2: si el usuario pertenece a más de un club, ve un selector
+// al entrar; si pertenece a uno solo, entra directo (a su dashboard si es
+// staff, a su portal si es member). Un mismo usuario podría en teoría ser
+// staff de un club Y member de otro — se combinan ambas listas.
 async function redirigirSegunClubes(
   supabase: Awaited<ReturnType<typeof createClient>>
 ) {
   const { data: userData } = await supabase.auth.getUser();
-  const { data: memberships } = await supabase
-    .from("organization_members")
-    .select("organizations(slug)")
-    .eq("user_id", userData.user?.id ?? "")
-    .eq("status", "active");
+  const userId = userData.user?.id ?? "";
 
-  const slugs = (memberships ?? [])
-    .map((m) => (m.organizations as unknown as { slug: string } | null)?.slug)
-    .filter((slug): slug is string => !!slug);
+  const [{ data: staffMemberships }, { data: portalMemberships }] = await Promise.all([
+    supabase
+      .from("organization_members")
+      .select("organizations(slug)")
+      .eq("user_id", userId)
+      .eq("status", "active"),
+    supabase.from("members").select("organizations(slug)").eq("user_id", userId),
+  ]);
 
-  if (slugs.length === 1) {
-    redirect(`/${slugs[0]}/dashboard`);
+  const destinos = [
+    ...(staffMemberships ?? []).map((m) => ({
+      slug: (m.organizations as unknown as { slug: string } | null)?.slug,
+      path: "dashboard",
+    })),
+    ...(portalMemberships ?? []).map((m) => ({
+      slug: (m.organizations as unknown as { slug: string } | null)?.slug,
+      path: "portal",
+    })),
+  ].filter((d): d is { slug: string; path: string } => !!d.slug);
+
+  if (destinos.length === 1) {
+    redirect(`/${destinos[0].slug}/${destinos[0].path}`);
   }
-  if (slugs.length > 1) {
+  if (destinos.length > 1) {
     redirect("/auth/seleccionar-club");
   }
-  // Sin clubes de staff: puede ser un member de portal (Fase 5) o una
-  // cuenta recién creada sin organización todavía.
+  // Sin ningún club: cuenta recién creada sin organización todavía.
   redirect("/");
 }
 
