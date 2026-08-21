@@ -31,7 +31,8 @@
 
 **FASE 0 — Setup: ✅ completada.**
 **FASE 1 — Núcleo administrativo: ✅ completada.**
-**Siguiente: FASE 2 — Cobros (módulo 8.5).**
+**FASE 2 — Cobros: ✅ completada.**
+**Siguiente: FASE 3 — WhatsApp (módulo 8.6).**
 
 ---
 
@@ -317,7 +318,86 @@ listan en detalle porque el patrón se repite en otras tablas nuevas:
    texto en inglés visible ✅ (revisado a simple vista, no exhaustivo).
 
 ## Fase 2 — Cobros
-Módulo 8.5 (transferencia bancaria) + reglas §6.1-6.4. **Estado: ⬜ no empezado.**
+Módulo 8.5 (transferencia bancaria) + reglas §6.1-6.4. **Estado: ✅ completa.**
+
+### Decisiones y desviaciones del esquema literal de CLAUDE.md §5 (documentadas, no ambiguas)
+- **`bank_accounts` (tabla nueva, no está en §5)**: CLAUDE.md §8.5 pide que
+  "el club configura... los datos de su(s) cuenta(s) bancaria(s)" pero §5
+  nunca modela esa tabla. Se creó `bank_accounts` (banco, tipo, número,
+  titular, cédula/RUC, `is_active`) — la opción más simple que soporta
+  "cuenta(s)" en plural. RLS: staff lee las de su club; owner/admin
+  escribe; member (portal, Fase 5) lee solo las activas.
+- **`payments.plan_id` (columna nueva, no está en la tabla `payments` de
+  §5)**: la regla §6.3 dice que al aprobar un pago hay que "crear O
+  extender" la membresía. Si es una extensión, `membership_id` ya apunta a
+  la membresía existente y de ahí se saca el plan. Pero si es la
+  **primera** membresía de un miembro, no existe todavía ningún
+  `membership_id` que crear — y sin un `plan_id` en el pago no hay forma
+  de saber qué plan comprar al momento de aprobar. Se agregó `plan_id`
+  (nullable, FK a `membership_plans`) como la solución mínima. Anotado en
+  el propio SQL de la migración también, no solo acá.
+- **`greatest(end_date, current_date) + duration_days`** en vez de la
+  redacción literal `end_date += duration_days`: si un miembro paga mucho
+  después de que su membresía venció, sumar `duration_days` a una
+  `end_date` vieja la dejaría *igual de vencida*. Se decidió extender desde
+  hoy si ya estaba vencida — comportamiento estándar en sistemas de
+  membresía, más razonable que la lectura literal.
+- **Lógica de aprobación/rechazo como funciones de Postgres**
+  (`approve_payment`, `reject_payment` — `SECURITY INVOKER`, sin
+  escalamiento de privilegios, corren con los permisos RLS de quien las
+  llama) en vez de una secuencia de updates desde el server action: la
+  regla §6.3 toca 4 tablas a la vez (payments, memberships, members,
+  payment_reminders) + audit_logs — hacerlo atómico importa tratándose de
+  dinero/acceso, y Postgres ya lo garantiza gratis dentro de una función.
+- **Envío real de WhatsApp no existe todavía** (es Fase 3): tanto
+  `approve_payment` como `reject_payment` insertan una fila en
+  `payment_reminders` con `status = 'scheduled'` y `scheduled_at = now()`
+  (confirmación de pago / aviso de rechazo). Quedan sin enviarse hasta que
+  exista el cron de Fase 3 — es el comportamiento esperado, no un bug.
+- **"Registrar pago" es una acción de staff, no self-service del miembro**:
+  el portal del miembro (donde él mismo sube su comprobante) es Fase 5.
+  Por ahora `owner/admin/staff` registran el pago desde el dashboard
+  (`/pagos/nuevo`), opcionalmente con foto/PDF del comprobante. Las
+  policies de RLS de `payments` y del bucket `payment-proofs` ya están
+  preparadas para agregar el self-service del member más adelante sin
+  tocar lo existente.
+
+### Lo construido
+- `/[orgSlug]/dashboard/configuracion/pagos`: CRUD simple de cuentas
+  bancarias (crear, activar/desactivar).
+- `/[orgSlug]/dashboard/pagos`: bandeja de pagos filtrable por estado
+  (por defecto muestra "Pendiente de revisión") y método; aprobar/rechazar
+  (con motivo opcional) llaman a las funciones RPC; "Ver comprobante" pide
+  una URL firmada de 60 segundos (CLAUDE.md §11.1, nunca URLs públicas).
+- `/[orgSlug]/dashboard/pagos/nuevo`: registra un pago para un miembro,
+  eligiendo entre "renovar una membresía existente" o "plan nuevo" (carga
+  todas las membresías del club una sola vez y filtra en el cliente por
+  miembro seleccionado — evita un round-trip extra, razonable a la escala
+  de un club).
+- Ficha de miembro (8.3) ahora muestra el historial real de pagos.
+- `/api/cron/expire-memberships`: regla §6.1, protegido con `CRON_SECRET`
+  (401 sin el header correcto), usa el service-role client. Registrado en
+  `vercel.json` para correr diario a las 10:00 UTC (~5am Ecuador).
+  **Nota**: Vercel agrega automáticamente el header
+  `Authorization: Bearer $CRON_SECRET` cuando esa env var está configurada
+  en el proyecto — no hace falta configurar nada más ahí.
+
+### Pruebas manuales y automatizadas
+- **Prueba manual explícita del cron** (no tiene UI): se sembraron datos
+  directo en Postgres local (un miembro con una membresía vencida hace 5
+  días) y se llamó al endpoint con y sin el `CRON_SECRET` correcto — con
+  el secreto: `membershipsExpired: 1, membersExpired: 1` y se verificó en
+  la base que ambos quedaron `expired`; sin el secreto: `401`. Esa misma
+  prueba se convirtió en automatizada real:
+  `tests/e2e/cron-expire-memberships.spec.ts` (usa el fixture `request` de
+  Playwright para sembrar vía REST de Supabase con la service_role key
+  local y llamar al cron como lo haría Vercel — solo válido en este
+  entorno local, nunca usar la service_role key así en producción).
+- `tests/e2e/pagos.spec.ts`: flujo completo (crear cuenta bancaria, crear
+  miembro sin membresía, registrar pago de un plan nuevo, aprobar → verifica
+  que el miembro pasa a "Activo" y aparece la membresía) y flujo de rechazo
+  (queda en "Rechazado", sin membresía creada). Los dos pasan.
+- Suite completa tras Fase 2: **9 pruebas e2e + 3 unitarias, todas en verde.**
 
 ## Fase 3 — WhatsApp
 Módulo 8.6. **Estado: ⬜ no empezado.**
@@ -383,7 +463,15 @@ de una fase fija:
     infinita de policy) — ambos documentados en detalle arriba porque el
     patrón se puede repetir en tablas futuras. 5 pruebas e2e y 3 unitarias,
     todas en verde. 15 commits en total en la sesión.
-  - Siguiente paso: Fase 2 (módulo 8.5, cobros por transferencia bancaria +
-    bandeja de aprobación + reglas de negocio §6.1-6.4) — es "el corazón
-    del valor del producto" según CLAUDE.md, no se avanza a Fase 3 sin esto
-    funcionando end-to-end.
+  - Fase 2 completada (módulo 8.5): cuentas bancarias, registrar/aprobar/
+    rechazar pagos (como funciones de Postgres para atomicidad), cron de
+    vencimiento de membresías (§6.1) probado manualmente y luego
+    automatizado. Se agregaron dos columnas/tablas fuera del esquema
+    literal de §5 (`bank_accounts`, `payments.plan_id`) porque la sección
+    no alcanza a cubrir esos casos — documentado en detalle arriba y en
+    los propios archivos de migración.
+  - Siguiente paso: Fase 3 (módulo 8.6, recordatorios automáticos por
+    WhatsApp vía Twilio) — ya hay `payment_reminders` y `whatsapp_templates`
+    creados y poblándose (confirmación de pago, rechazo de comprobante)
+    desde Fase 2, solo falta el envío real y los recordatorios de
+    vencimiento (§6.2: 3 días antes, el día, y 1/3/7 días después).
