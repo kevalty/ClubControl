@@ -1,6 +1,4 @@
-import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { LinkButton } from "@/components/ui/link-button";
 
 export default function Home() {
   return (
@@ -13,15 +11,10 @@ export default function Home() {
         deportivos, academias y gimnasios en Ecuador.
       </p>
       <div className="flex gap-4">
-        <Link href="/auth/registro" className={cn(buttonVariants())}>
-          Crear mi club
-        </Link>
-        <Link
-          href="/auth/login"
-          className={cn(buttonVariants({ variant: "outline" }))}
-        >
+        <LinkButton href="/auth/registro">Crear mi club</LinkButton>
+        <LinkButton href="/auth/login" variant="outline">
           Ya tengo cuenta
-        </Link>
+        </LinkButton>
       </div>
     </main>
   );
