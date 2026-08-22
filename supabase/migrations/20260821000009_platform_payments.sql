@@ -71,6 +71,17 @@ begin
     raise exception 'Este pago ya fue revisado';
   end if;
 
+  -- Solo platform_admin (CLAUDE.md §8.11). Chequeo explícito: un owner SÍ
+  -- puede ver su propio pago pendiente (para mostrárselo en su panel) y
+  -- SÍ tiene permiso de UPDATE sobre su propia organization_subscriptions/
+  -- organizations — sin este chequeo, un owner que llamara esta función
+  -- directo aprobaría su propia suscripción sin revisión real (mismo bug
+  -- de fondo que en approve_payment: un UPDATE bloqueado por RLS no lanza
+  -- excepción, solo afecta 0 filas, y las demás tablas sí lo dejarían pasar).
+  if not private.is_platform_admin() then
+    raise exception 'No tienes permiso para aprobar este pago.';
+  end if;
+
   update platform_payments
     set status = 'approved', reviewed_by = auth.uid(), reviewed_at = now(), paid_at = now()
     where id = p_payment_id;
@@ -103,6 +114,10 @@ begin
   end if;
   if v_payment.status <> 'pending_review' then
     raise exception 'Este pago ya fue revisado';
+  end if;
+
+  if not private.is_platform_admin() then
+    raise exception 'No tienes permiso para rechazar este pago.';
   end if;
 
   update platform_payments

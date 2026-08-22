@@ -168,6 +168,14 @@ begin
     raise exception 'Este pago ya fue revisado';
   end if;
 
+  -- CLAUDE.md §4: solo owner/admin aprueban pagos. Ver la migración
+  -- 20260821000004 (versión final de esta función) para la explicación
+  -- completa de por qué este chequeo explícito es necesario y no basta
+  -- con la policy RLS de UPDATE.
+  if private.user_org_role(v_payment.organization_id) not in ('owner', 'admin') then
+    raise exception 'No tienes permiso para aprobar este pago.';
+  end if;
+
   if v_payment.membership_id is not null then
     -- Renovación: extiende la membresía existente. Si ya estaba vencida,
     -- extiende desde HOY (no desde la fecha vieja de vencimiento) — es una
@@ -231,6 +239,13 @@ begin
   end if;
   if v_payment.status <> 'pending_review' then
     raise exception 'Este pago ya fue revisado';
+  end if;
+
+  -- CLAUDE.md §4: solo owner/admin. Ver nota en approve_payment sobre por
+  -- qué este chequeo explícito hace falta (un UPDATE bloqueado por RLS no
+  -- lanza excepción en Postgres, solo afecta 0 filas).
+  if private.user_org_role(v_payment.organization_id) not in ('owner', 'admin') then
+    raise exception 'No tienes permiso para rechazar este pago.';
   end if;
 
   update payments

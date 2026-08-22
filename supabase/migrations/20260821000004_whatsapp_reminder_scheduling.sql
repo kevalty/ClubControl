@@ -25,6 +25,17 @@ begin
     raise exception 'Este pago ya fue revisado';
   end if;
 
+  -- CLAUDE.md §4: solo owner/admin aprueban pagos. Chequeo EXPLÍCITO acá
+  -- (no basta con la policy de UPDATE de `payments`): un UPDATE bloqueado
+  -- por RLS afecta 0 filas pero NO lanza excepción en Postgres, así que
+  -- sin este chequeo la función seguía de largo y de todas formas creaba/
+  -- extendía la membresía con los permisos de `memberships`/`members`
+  -- (esas sí las puede tocar `staff`) — un bug real encontrado probando
+  -- el flujo completo como un usuario `staff`, no solo revisando el código.
+  if private.user_org_role(v_payment.organization_id) not in ('owner', 'admin') then
+    raise exception 'No tienes permiso para aprobar este pago.';
+  end if;
+
   if v_payment.membership_id is not null then
     select * into v_plan from membership_plans where id =
       (select plan_id from memberships where id = v_payment.membership_id);

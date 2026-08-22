@@ -5,6 +5,18 @@
 
 create schema if not exists private;
 
+-- USAGE (no acceso a datos: solo permite resolver/llamar funciones dentro
+-- del schema). Las funciones de este schema ya son security definer y ya
+-- las usan las policies de RLS sin problema (la evaluación de una policy
+-- no necesita este grant), pero SÍ hace falta para llamarlas desde el
+-- BODY de otra función `security invoker` (ej. approve_payment más
+-- adelante, que valida el rol del caller antes de aprobar un pago) — sin
+-- esto, Postgres tira "permission denied for schema private" apenas se
+-- intenta resolver el nombre calificado `private.algo(...)` corriendo
+-- como el rol del que llama. No expone nada nuevo vía la API REST: el
+-- schema `private` sigue sin estar en la lista de schemas expuestos.
+grant usage on schema private to authenticated, service_role;
+
 -- =========================================
 -- PLATAFORMA (SaaS) — no pertenece a ningún club
 -- =========================================

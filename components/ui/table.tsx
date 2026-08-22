@@ -8,7 +8,11 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto"
+      // touch-pan-x: sin esto, un tap en un link/botón adentro de esta
+      // tabla con scroll horizontal puede quedar "absorbido" por el
+      // gesto de scroll en vez de disparar el click — encontrado
+      // probando con emulación táctil real (CLAUDE.md §15.3, mobile).
+      className="relative w-full touch-pan-x overflow-x-auto"
     >
       <table
         data-slot="table"

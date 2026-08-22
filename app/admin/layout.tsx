@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
+import { ResponsiveNav } from "@/components/responsive-nav";
 
 const NAV_ITEMS = [
   { href: "", label: "Resumen" },
@@ -35,20 +35,10 @@ export default async function AdminLayout({
 
   return (
     <div className="flex min-h-full flex-1 flex-col md:flex-row">
-      <aside className="flex shrink-0 flex-col gap-1 border-b bg-muted/30 p-4 md:w-56 md:border-b-0 md:border-r">
-        <div className="mb-4 px-2 text-lg font-semibold">GestorClub — Admin</div>
-        <nav className="flex flex-row flex-wrap gap-1 md:flex-col">
-          {NAV_ITEMS.map((item) => (
-            <Link
-              key={item.href}
-              href={`/admin${item.href ? `/${item.href}` : ""}`}
-              className="whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-        <form action={logout} className="mt-auto pt-4">
+      <aside className="flex shrink-0 flex-col gap-3 border-b bg-muted/30 p-4 md:w-56 md:border-b-0 md:border-r">
+        <div className="px-2 text-lg font-semibold">GestorClub — Admin</div>
+        <ResponsiveNav basePath="/admin" items={NAV_ITEMS} />
+        <form action={logout} className="pt-2 md:mt-auto">
           <Button type="submit" variant="ghost" size="sm" className="w-full">
             Cerrar sesión
           </Button>
