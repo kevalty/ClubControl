@@ -5,7 +5,7 @@
 > módulo se quedó, qué está hecho, qué falta y qué decisiones se tomaron.
 > Fuente de verdad del alcance: [`CLAUDE.md`](./CLAUDE.md).
 
-Última actualización: 2026-08-20 (sesión inicial — Fase 0 completada)
+Última actualización: 2026-08-21 (sesión 2 — Fases 0-6 completas + pase de QA/mobile)
 
 ## Cómo leer este archivo
 - ✅ Hecho y verificado (compila / migración aplicada / probado manualmente)
@@ -36,6 +36,7 @@
 **FASE 4 — Acceso y clases: ✅ completada.**
 **FASE 5 — Portal del miembro + PWA: ✅ completada.**
 **FASE 6 — Panel de plataforma y suscripción SaaS: ✅ completada.**
+**Pase de QA (mobile + seguridad): ✅ completo — ver sección dedicada más abajo, incluye un bug de seguridad real y corregido (staff podía aprobar pagos).**
 **Siguiente: FASE 7 — Opcional / a futuro (Kushki/PayPhone, IA, gamificación, subdominios). No se avanza sola sin pedido explícito del cliente.**
 
 ---
@@ -689,6 +690,143 @@ Kushki/PayPhone, IA (8.14), gamificación (8.15), subdominios. **Estado: ⬜ no 
 
 ---
 
+## Pase de calidad: mobile + edge cases de seguridad (2026-08-21)
+Con las Fases 0-6 completas, esta sesión hizo un pase de QA dedicado en
+vez de seguir agregando funcionalidad: auditoría visual en viewport móvil
+real (con emulación táctil, no solo viewport angosto) + pruebas de
+aislamiento multi-tenant y de permisos por rol que hasta ahora solo se
+habían probado una vez a mano (Fase 0) o no se habían probado del todo.
+
+### 🐛🔴 El bug más serio encontrado en todo el proyecto hasta ahora
+**Un `staff` podía aprobar un pago y otorgar la membresía correspondiente,
+aunque CLAUDE.md §4 dice explícitamente "Solo owner/admin pueden aprobar o
+rechazar comprobantes de pago".** No era un problema de la UI (el botón
+"Aprobar" se muestra igual a cualquier staff, eso es un tema aparte) sino
+que la función `approve_payment()` en sí **lo permitía a nivel de base de
+datos**. Causa raíz: la policy RLS de `UPDATE` sobre `payments` sí
+restringe correctamente a owner/admin, pero en Postgres **un UPDATE
+bloqueado por RLS no lanza una excepción — simplemente afecta 0 filas y la
+función sigue de largo** como si nada. Como el resto de la función sí
+tiene permiso para tocar `memberships`/`members` (esas tablas permiten
+`staff` en su policy de UPDATE), el resultado real era: la membresía se
+creaba/extendía y el miembro quedaba activo, pero la fila de `payments`
+se quedaba en `pending_review` — un estado inconsistente y silencioso,
+peor que un simple rechazo de permiso.
+- **Cómo se encontró**: no por inspección de código, sino escribiendo
+  `tests/e2e/rbac.spec.ts` — un staff sembrado de verdad (mismo mecanismo
+  que una invitación real de 8.9) inicia sesión y hace clic en "Aprobar"
+  en la UI real. El primer intento de la prueba esperaba un mensaje de
+  error; lo que reveló el bug fue ver el toast de **éxito**
+  ("Pago aprobado. Membresía actualizada.") cuando no debía aparecer.
+- **Arreglo**: se agregó un chequeo explícito de rol (`private.user_org_role(...)
+  not in ('owner','admin')` → `raise exception`) **al principio** de las 4
+  funciones de aprobación/rechazo del proyecto (`approve_payment`,
+  `reject_payment`, `approve_platform_payment`, `reject_platform_payment`),
+  antes de tocar ninguna tabla — no alcanza con confiar en que cada UPDATE
+  individual "ya está protegido por su propia policy", porque un UPDATE
+  bloqueado no frena la ejecución del resto de la función.
+- **Ese mismo arreglo destapó un segundo bug**: al agregar la llamada a
+  `private.user_org_role(...)` dentro de estas funciones (que corren
+  `SECURITY INVOKER`, con los permisos del que llama), un owner
+  **legítimo** dejó de poder aprobar sus propios pagos — Postgres tiraba
+  "permission denied for schema private". Las funciones de `private` son
+  `security definer` y las policies de RLS ya las podían usar sin
+  problema, pero **llamarlas desde el body de otra función que corre como
+  el rol del caller** sí requiere que ese rol tenga `USAGE` sobre el
+  schema `private` — nunca se había otorgado porque nunca antes hacía
+  falta. Se agregó `grant usage on schema private to authenticated,
+  service_role;` (no expone nada nuevo vía REST: ese schema sigue sin
+  estar en la lista de schemas expuestos de PostgREST). Encontrado porque
+  la suite completa de pruebas (no solo la nueva) se corrió de nuevo tras
+  el primer arreglo — los 4 pagos legítimos de fases anteriores empezaron
+  a fallar, lo cual confirmó el segundo bug antes de darlo por terminado.
+- **Alcance de la revisión**: se encontró el mismo *patrón* (una
+  policy RLS correcta, pero un UPDATE silenciosamente no-op sin frenar el
+  resto de una acción de varios pasos) en otras acciones más simples de un
+  solo `UPDATE` (activar/desactivar planes, clases, cuentas bancarias,
+  congelar/reactivar membresía) — ahí el impacto es solo un toast de
+  "éxito" engañoso sin ningún efecto real (RLS sigue bloqueando el cambio
+  correctamente), no un bypass de seguridad, porque no hay pasos
+  posteriores con permisos más amplios que se ejecuten igual. Se decidió
+  **no** arreglar esos ahora (es una mejora de UX, no de seguridad) para
+  mantener el alcance de este pase enfocado — anotado acá para una futura
+  sesión de pulido.
+
+### Otros bugs/mejoras encontrados en el pase de mobile
+- **Fuente rota en todo el sitio**: `app/globals.css` tenía
+  `--font-sans: var(--font-sans);` — una variable CSS que se referenciaba
+  a sí misma (nunca resuelve a nada), causando que todos los títulos
+  cayeran al serif por defecto del navegador en vez de la fuente Geist
+  configurada. Se corrigió a `var(--font-geist-sans)` (mismo patrón que
+  `--font-mono` ya usaba correctamente). Encontrado a simple vista en la
+  primera captura de pantalla móvil.
+- **Navegación del dashboard/portal/admin inutilizable en mobile**: la
+  barra lateral usaba una fila horizontal con `overflow-x-auto` — con 9
+  secciones (dashboard), la mayoría quedaban cortadas fuera de la pantalla
+  sin ninguna pista de que había más, y sin affordance de scroll visible.
+  Se reemplazó por un componente genérico (`components/responsive-nav.tsx`):
+  barra vertical normal en desktop, menú desplegable (`DropdownMenu`) en
+  mobile. Aplicado a los tres layouts (dashboard, portal, admin).
+- **Tocar un link dentro de una tabla no navegaba, solo con emulación
+  táctil real** (`hasTouch: true`, no solo viewport angosto — con mouse
+  emulado el mismo click SÍ funcionaba, por eso no se había visto antes).
+  Causa: el contenedor `overflow-x-auto` que envuelve cada tabla (para
+  scroll horizontal en mobile) absorbía el gesto de tap como si fuera el
+  inicio de un scroll. Se agregó `touch-action: pan-x` (clase Tailwind
+  `touch-pan-x`) al contenedor en `components/ui/table.tsx` — le dice al
+  navegador que ese contenedor solo maneja gestos horizontales, dejando
+  que un tap vertical/estacionario dispare el click normalmente. Afecta a
+  **todas** las tablas de la app (una sola línea, arregla el patrón
+  entero). Prueba de regresión: `tests/e2e/mobile/table-tap.spec.ts`
+  (corre solo bajo `--project=mobile`, con emulación táctil real — en
+  Desktop Chrome sin touch esta prueba hubiera pasado igual aunque el bug
+  siguiera presente, por eso hace falta el proyecto mobile específicamente).
+- **Tablas anchas se cortan en mobile sin indicación de scroll** (revisado
+  y aceptado, no arreglado): es el patrón estándar de la industria para
+  tablas de datos en mobile, la config de la Fase 0-6 ya usa
+  `overflow-x-auto`. Rediseñar a un layout de tarjetas específico para
+  mobile sería un cambio de diseño mucho más grande, fuera del alcance de
+  un pase de QA — anotado para si el cliente lo pide explícitamente.
+- **Advertencia de hidratación de React, intermitente, no reproducida de
+  forma aislada**: durante la auditoría apareció una vez un warning de
+  hydration mismatch relacionado con `style={{caret-color:"transparent"}}`
+  en inputs — atado a cómo el `Input` de `@base-ui/react` maneja ese
+  estilo internamente. No se reprodujo de forma consistente en scripts de
+  diagnóstico aislados (probablemente un artefacto de recompilación de
+  Turbopack en modo dev, no un bug de producción) y no afecta
+  funcionalidad (las 19 pruebas e2e pasan de forma consistente). Anotado
+  para revisar si reaparece con más frecuencia — no se investigó más a
+  fondo por rendimiento decreciente del tiempo invertido.
+
+### Pruebas nuevas de este pase
+- `tests/e2e/multi-tenant-isolation.spec.ts`: dos clubes reales vía UI, el
+  owner de uno intenta entrar al dashboard del otro adivinando la URL →
+  404 (RLS le esconde hasta la existencia del club), y confirma que su
+  propio listado de miembros nunca muestra datos ajenos. Versión
+  automatizada de punta a punta de la prueba manual que se hizo una sola
+  vez contra Postgres directo en Fase 0.
+- `tests/e2e/rbac.spec.ts`: encontró el bug crítico de arriba. Un `staff`
+  sembrado con acceso real intenta aprobar un pago desde la UI real; se
+  confirma contra la base de datos que el pago sigue en `pending_review`.
+- `tests/e2e/mobile/table-tap.spec.ts`: regresión del bug de tap en tablas.
+- `tests/e2e/mobile/visual-audit.spec.ts`: no es una prueba de regresión
+  (sin asserts, solo capturas) — herramienta reutilizable para la próxima
+  vez que haga falta revisar mobile visualmente. Corre con
+  `npx playwright test --project=mobile tests/e2e/mobile/visual-audit.spec.ts`,
+  guarda capturas en `.mobile-audit/` (gitignored).
+- Suite completa tras este pase: **19 pruebas e2e (17 chromium + 2 mobile)
+  + 6 unitarias, todas en verde.**
+
+### Lección para el futuro (aplica a todo el proyecto, no solo a pagos)
+Cualquier función de varios pasos que dependa de que una policy RLS
+"frene" la ejecución si el usuario no tiene permiso está mal — un UPDATE
+bloqueado por RLS no es un error en Postgres, es un no-op silencioso.
+Cuando una función hace algo sensible en varios pasos con distintas
+tablas, el chequeo de autorización tiene que ser explícito y estar
+**primero**, no implícito en cada policy por separado.
+
+---
+
 ## Nota sobre módulos sin fase numerada explícita
 CLAUDE.md §14 no asigna número de fase a los módulos 8.9 (staff/entrenadores),
 8.10 (dashboard con KPIs) y 8.13 (configuración general). Decisión tomada
@@ -780,7 +918,26 @@ de una fase fija:
     Fase 6) están completas.** Solo queda Fase 7, explícitamente opcional
     y "a futuro" — no se construye sin que el cliente lo pida
     (CLAUDE.md §14: "Pasarela de pago automática... IA... gamificación...
-    subdominios"). Siguiente sesión: revisar con el usuario si quiere
-    seguir con algo de Fase 7, pulir DoD pendientes (viewport móvil real,
-    más pruebas), o pasar a preparar el deploy real (Vercel + Supabase
-    hosted + Twilio).
+    subdominios").
+- **2026-08-21**: A pedido del usuario, pase de calidad dedicado (mobile +
+  edge cases) en vez de seguir con Fase 7. Auditoría visual real en
+  viewport móvil con emulación táctil (no solo viewport angosto):
+  encontró una fuente rota en todo el sitio (variable CSS
+  autorreferenciada), navegación inutilizable en mobile por overflow
+  horizontal sin affordance, y un bug real de tap-no-funciona dentro de
+  tablas con scroll horizontal (`touch-action`). Pruebas nuevas de
+  aislamiento multi-tenant y RBAC de punta a punta encontraron **el bug
+  más serio del proyecto hasta ahora**: un `staff` podía aprobar pagos y
+  otorgar membresías (CLAUDE.md §4 dice que solo owner/admin), porque un
+  `UPDATE` bloqueado por RLS no lanza excepción en Postgres — la función
+  seguía de largo tocando tablas donde `staff` sí tiene permiso. Se
+  agregaron chequeos de rol explícitos en las 4 funciones de
+  aprobación/rechazo (pagos de club y de plataforma), lo cual destapó un
+  segundo bug (falta de `GRANT USAGE ON SCHEMA private`) al correr la
+  suite completa y ver que los pagos legítimos de owner/admin también
+  empezaron a fallar. Todo documentado en detalle arriba. 19 e2e + 6
+  unitarias en verde al cierre de esta sesión.
+  - Siguiente sesión: preguntar al usuario si sigue con Fase 7, más
+    pulido (el patrón de "UPDATE silenciosamente bloqueado" se encontró
+    también, con menor impacto, en varias acciones simples de un solo
+    toggle — ver la sección de QA arriba), o preparar el deploy real.
