@@ -31,10 +31,14 @@ export async function registrarClub(_prevState: { error?: string } | undefined, 
   });
 
   if (signUpError || !signUpData.user) {
-    if (signUpError?.code === "user_already_exists") {
+    if (signUpError?.code === "user_already_exists" || signUpError?.code === "email_exists") {
       return { error: "Ya existe una cuenta con ese correo. Inicia sesión en vez de registrarte." };
     }
-    return { error: "No se pudo crear la cuenta. Intenta de nuevo en unos minutos." };
+    if (signUpError?.message?.toLowerCase().includes("rate limit") || signUpError?.status === 429) {
+      return { error: "Demasiados intentos. Espera unos minutos y vuelve a intentarlo." };
+    }
+    console.error("[registro] signUp error:", signUpError);
+    return { error: `No se pudo crear la cuenta: ${signUpError?.message ?? "error desconocido"}` };
   }
 
   const userId = signUpData.user.id;
