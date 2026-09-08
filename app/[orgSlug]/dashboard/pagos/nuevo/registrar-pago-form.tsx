@@ -48,7 +48,8 @@ export function RegistrarPagoForm({
     [membresias, memberId]
   );
 
-  function handlePlanChange(value: string) {
+  function handlePlanChange(value: string | null) {
+    if (!value) return;
     setPlanId(value);
     const plan = planes.find((p) => p.id === value);
     if (plan) setAmount(Number(plan.price).toFixed(2));

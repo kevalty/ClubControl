@@ -1,0 +1,93 @@
+<h2>¿Qué personalidad visual quieres para GestorClub?</h2>
+<p class="subtitle">Elige la dirección que más te guste — esto define colores, tipografía y sensación general</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="dark-premium" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0f0f14;padding:16px;border-radius:8px;min-height:160px;display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+        <div style="width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,#6366f1,#8b5cf6);"></div>
+        <span style="color:#fff;font-weight:700;font-size:13px;letter-spacing:.5px;">GESTORCLUB</span>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <div style="background:#1a1a2e;border:1px solid #2d2d4a;border-radius:8px;padding:10px;flex:1;">
+          <div style="color:#6366f1;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Recaudo</div>
+          <div style="color:#fff;font-size:18px;font-weight:700;margin-top:2px;">$4,280</div>
+          <div style="color:#22c55e;font-size:9px;margin-top:2px;">↑ 12% vs mes anterior</div>
+        </div>
+        <div style="background:#1a1a2e;border:1px solid #2d2d4a;border-radius:8px;padding:10px;flex:1;">
+          <div style="color:#8b5cf6;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Miembros</div>
+          <div style="color:#fff;font-size:18px;font-weight:700;margin-top:2px;">148</div>
+          <div style="color:#22c55e;font-size:9px;margin-top:2px;">↑ 8 nuevos</div>
+        </div>
+      </div>
+      <div style="background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:6px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="color:#fff;font-size:11px;font-weight:600;">Pagos pendientes</span>
+        <span style="background:rgba(255,255,255,.2);color:#fff;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:700;">5</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Dark & Premium</h3>
+      <p>Fondo oscuro, acentos violeta/índigo, gradientes. Sensación de app fintech moderna. Diferente a todo lo que hay en Ecuador.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="clean-pro" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#f8fafc;padding:16px;border-radius:8px;min-height:160px;display:flex;flex-direction:column;gap:10px;border:1px solid #e2e8f0;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+        <div style="width:28px;height:28px;border-radius:6px;background:#0EA5E9;"></div>
+        <span style="color:#0f172a;font-weight:700;font-size:13px;letter-spacing:.5px;">GESTORCLUB</span>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:10px;flex:1;box-shadow:0 1px 3px rgba(0,0,0,.06);">
+          <div style="color:#64748b;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Recaudo</div>
+          <div style="color:#0f172a;font-size:18px;font-weight:700;margin-top:2px;">$4,280</div>
+          <div style="color:#22c55e;font-size:9px;margin-top:2px;">↑ 12% vs mes anterior</div>
+        </div>
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:10px;flex:1;box-shadow:0 1px 3px rgba(0,0,0,.06);">
+          <div style="color:#64748b;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Miembros</div>
+          <div style="color:#0f172a;font-size:18px;font-weight:700;margin-top:2px;">148</div>
+          <div style="color:#22c55e;font-size:9px;margin-top:2px;">↑ 8 nuevos</div>
+        </div>
+      </div>
+      <div style="background:#0EA5E9;border-radius:6px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="color:#fff;font-size:11px;font-weight:600;">Pagos pendientes</span>
+        <span style="background:rgba(255,255,255,.25);color:#fff;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:700;">5</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Clean & Profesional</h3>
+      <p>Fondo blanco, azul cielo como acento, sombras sutiles. Como Linear o Vercel. Serio, rápido, claro. Fácil de leer.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="vibrant" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:linear-gradient(135deg,#f0f9ff,#fdf4ff);padding:16px;border-radius:8px;min-height:160px;display:flex;flex-direction:column;gap:10px;border:1px solid #e9d5ff;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+        <div style="width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,#f97316,#ec4899);"></div>
+        <span style="background:linear-gradient(90deg,#f97316,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800;font-size:13px;letter-spacing:.5px;">GESTORCLUB</span>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <div style="background:#fff;border-radius:10px;padding:10px;flex:1;box-shadow:0 2px 8px rgba(249,115,22,.15);">
+          <div style="color:#f97316;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">Recaudo</div>
+          <div style="color:#1e293b;font-size:18px;font-weight:800;margin-top:2px;">$4,280</div>
+          <div style="color:#22c55e;font-size:9px;margin-top:2px;">↑ 12% este mes 🔥</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:10px;flex:1;box-shadow:0 2px 8px rgba(236,72,153,.15);">
+          <div style="color:#ec4899;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">Miembros</div>
+          <div style="color:#1e293b;font-size:18px;font-weight:800;margin-top:2px;">148</div>
+          <div style="color:#22c55e;font-size:9px;margin-top:2px;">↑ 8 nuevos 💪</div>
+        </div>
+      </div>
+      <div style="background:linear-gradient(90deg,#f97316,#ec4899);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="color:#fff;font-size:11px;font-weight:700;">Pagos pendientes</span>
+        <span style="background:rgba(255,255,255,.25);color:#fff;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:800;">5</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Vibrant & Deportivo</h3>
+      <p>Naranja/rosa, gradientes energéticos, tipografía bold. Sensación de app de fitness. Dinámico y llamativo.</p>
+    </div>
+  </div>
+
+</div>

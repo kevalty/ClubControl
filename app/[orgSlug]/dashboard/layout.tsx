@@ -1,20 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/auth/actions";
-import { Button } from "@/components/ui/button";
-import { ResponsiveNav } from "@/components/responsive-nav";
-
-const NAV_ITEMS = [
-  { href: "miembros", label: "Miembros" },
-  { href: "planes", label: "Planes" },
-  { href: "pagos", label: "Pagos" },
-  { href: "asistencia", label: "Asistencia" },
-  { href: "clases", label: "Clases" },
-  { href: "configuracion/pagos", label: "Cuentas bancarias" },
-  { href: "configuracion/whatsapp", label: "Plantillas WhatsApp" },
-  { href: "whatsapp/anuncio", label: "Enviar anuncio" },
-  { href: "configuracion/suscripcion", label: "Suscripción" },
-];
+import { DashboardSidebar } from "@/components/dashboard-sidebar";
 
 export default async function DashboardLayout({
   children,
@@ -26,28 +13,30 @@ export default async function DashboardLayout({
   const { orgSlug } = await params;
   const supabase = await createClient();
 
-  const { data: org } = await supabase
-    .from("organizations")
-    .select("id, name")
-    .eq("slug", orgSlug)
-    .maybeSingle();
+  const [{ data: org }, pendingResult] = await Promise.all([
+    supabase
+      .from("organizations")
+      .select("id, name")
+      .eq("slug", orgSlug)
+      .maybeSingle(),
+    supabase
+      .from("payments")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "pending_review"),
+  ]);
 
-  if (!org) {
-    notFound();
-  }
+  if (!org) notFound();
+
+  const pendingPayments = pendingResult.count ?? 0;
 
   return (
-    <div className="flex min-h-full flex-1 flex-col md:flex-row">
-      <aside className="flex shrink-0 flex-col gap-3 border-b bg-muted/30 p-4 md:w-56 md:border-b-0 md:border-r">
-        <div className="px-2 text-lg font-semibold">{org.name}</div>
-        <ResponsiveNav basePath={`/${orgSlug}/dashboard`} items={NAV_ITEMS} />
-        <form action={logout} className="pt-2 md:mt-auto">
-          <Button type="submit" variant="ghost" size="sm" className="w-full">
-            Cerrar sesión
-          </Button>
-        </form>
-      </aside>
-      <main className="flex-1 p-4 md:p-8">{children}</main>
+    <div className="flex h-full min-h-screen flex-col bg-[#08080f] md:flex-row">
+      <DashboardSidebar
+        orgSlug={orgSlug}
+        orgName={org.name}
+        pendingPayments={pendingPayments}
+      />
+      <main className="flex-1 overflow-y-auto p-4 md:p-8">{children}</main>
     </div>
   );
 }
