@@ -40,11 +40,24 @@ export function RegistrarPagoForm({
   const [state, formAction, pending] = useActionState(action, undefined);
   const [memberId, setMemberId] = useState<string>("");
   const [modo, setModo] = useState<"renovar" | "nuevo">("nuevo");
+  const [planId, setPlanId] = useState<string>("");
+  const [amount, setAmount] = useState<string>("");
 
   const membresiasDelMiembro = useMemo(
     () => membresias.filter((m) => m.member_id === memberId),
     [membresias, memberId]
   );
+
+  function handlePlanChange(value: string) {
+    setPlanId(value);
+    const plan = planes.find((p) => p.id === value);
+    if (plan) setAmount(Number(plan.price).toFixed(2));
+  }
+
+  function handleModoChange(nuevoModo: "renovar" | "nuevo") {
+    setModo(nuevoModo);
+    setPlanId("");
+  }
 
   return (
     <form action={formAction} className="space-y-4">
@@ -82,7 +95,7 @@ export function RegistrarPagoForm({
               <input
                 type="radio"
                 checked={modo === "renovar"}
-                onChange={() => setModo("renovar")}
+                onChange={() => handleModoChange("renovar")}
                 disabled={membresiasDelMiembro.length === 0}
               />
               Renovación de una membresía existente
@@ -91,7 +104,7 @@ export function RegistrarPagoForm({
               <input
                 type="radio"
                 checked={modo === "nuevo"}
-                onChange={() => setModo("nuevo")}
+                onChange={() => handleModoChange("nuevo")}
               />
               Plan nuevo
             </label>
@@ -120,7 +133,7 @@ export function RegistrarPagoForm({
       {memberId && modo === "nuevo" ? (
         <div className="space-y-2">
           <Label htmlFor="planId">Plan</Label>
-          <Select name="planId">
+          <Select name="planId" value={planId} onValueChange={handlePlanChange}>
             <SelectTrigger id="planId" className="w-full">
               <SelectValue placeholder="Selecciona un plan" />
             </SelectTrigger>
@@ -138,7 +151,16 @@ export function RegistrarPagoForm({
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="amount">Monto (USD)</Label>
-          <Input id="amount" name="amount" type="number" min="0" step="0.01" required />
+          <Input
+            id="amount"
+            name="amount"
+            type="number"
+            min="0.01"
+            step="0.01"
+            required
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="method">Método</Label>

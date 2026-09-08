@@ -97,7 +97,9 @@ export async function updateSession(request: NextRequest) {
         .maybeSingle();
 
       if (!portalMember) {
-        return new NextResponse("No autorizado para este club", { status: 403 });
+        const url = request.nextUrl.clone();
+        url.pathname = "/auth/login";
+        return NextResponse.redirect(url);
       }
     }
   }
