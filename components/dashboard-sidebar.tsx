@@ -168,6 +168,7 @@ export function DashboardSidebar({
         </div>
         <button
           onClick={() => setMobileOpen(true)}
+          aria-label="Abrir menú"
           className="rounded-lg p-1.5 text-[#6b7280] hover:bg-[#1a1a2e] hover:text-white"
         >
           <Menu className="size-5" />

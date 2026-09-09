@@ -29,7 +29,7 @@ export default async function NuevoPagoPage({
       .order("name"),
     supabase
       .from("memberships")
-      .select("id, member_id, end_date, status, membership_plans(name)")
+      .select("id, member_id, end_date, status, membership_plans(name, price)")
       .eq("organization_id", org!.id)
       .in("status", ["active", "frozen"]),
   ]);
@@ -49,7 +49,9 @@ export default async function NuevoPagoPage({
           end_date: m.end_date,
           status: m.status,
           plan_name:
-            (m.membership_plans as unknown as { name: string } | null)?.name ?? "Plan",
+            (m.membership_plans as unknown as { name: string; price: number } | null)?.name ?? "Plan",
+          plan_price:
+            (m.membership_plans as unknown as { name: string; price: number } | null)?.price ?? null,
         }))}
       />
     </div>

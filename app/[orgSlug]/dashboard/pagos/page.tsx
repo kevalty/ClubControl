@@ -47,9 +47,17 @@ export default async function PagosPage({
     .eq("slug", orgSlug)
     .single();
 
+  // rejection_reason was added in migration 20260908000001; cast until types are regenerated
+  type PagoRow = {
+    id: string; amount: number; currency: string; method: string; status: string;
+    reference_number: string | null; rejection_reason: string | null;
+    proof_url: string | null; created_at: string;
+    members: { full_name: string } | null;
+  };
+
   let query = supabase
     .from("payments")
-    .select("id, amount, currency, method, status, reference_number, proof_url, created_at, members(full_name)")
+    .select("id, amount, currency, method, status, reference_number, rejection_reason, proof_url, created_at, members(full_name)")
     .eq("organization_id", org!.id)
     .order("created_at", { ascending: false });
 
@@ -61,7 +69,8 @@ export default async function PagosPage({
     query = query.eq("method", metodo);
   }
 
-  const { data: pagos, error } = await query;
+  const { data: _pagosRaw, error } = await query;
+  const pagos = _pagosRaw as unknown as PagoRow[] | null;
 
   return (
     <div className="space-y-6">
@@ -134,7 +143,7 @@ export default async function PagosPage({
               {pagos.map((p) => (
                 <TableRow key={p.id}>
                   <TableCell className="font-medium">
-                    {(p.members as unknown as { full_name: string } | null)?.full_name ?? "—"}
+                    {p.members?.full_name ?? "—"}
                   </TableCell>
                   <TableCell>${Number(p.amount).toFixed(2)}</TableCell>
                   <TableCell>{PAYMENT_METHOD_LABELS[p.method] ?? p.method}</TableCell>
@@ -143,6 +152,11 @@ export default async function PagosPage({
                     <Badge variant={STATUS_BADGE_VARIANT[p.status] ?? "secondary"}>
                       {PAYMENT_STATUS_LABELS[p.status] ?? p.status}
                     </Badge>
+                    {p.status === "rejected" && p.rejection_reason ? (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {p.rejection_reason}
+                      </p>
+                    ) : null}
                   </TableCell>
                   <TableCell>{new Date(p.created_at).toLocaleDateString("es-EC")}</TableCell>
                   <TableCell className="text-right">

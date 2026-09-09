@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,7 @@ type Membresia = {
   end_date: string;
   status: string;
   plan_name: string;
+  plan_price: number | null;
 };
 
 export function RegistrarPagoForm({
@@ -41,6 +42,7 @@ export function RegistrarPagoForm({
   const [memberId, setMemberId] = useState<string>("");
   const [modo, setModo] = useState<"renovar" | "nuevo">("nuevo");
   const [planId, setPlanId] = useState<string>("");
+  const [membershipId, setMembershipId] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
 
   const membresiasDelMiembro = useMemo(
@@ -55,9 +57,27 @@ export function RegistrarPagoForm({
     if (plan) setAmount(Number(plan.price).toFixed(2));
   }
 
+  // Auto-select first membership and auto-fill amount when switching to "renovar" mode
+  useEffect(() => {
+    if (modo === "renovar" && membresiasDelMiembro.length > 0 && !membershipId) {
+      const first = membresiasDelMiembro[0];
+      setMembershipId(first.id);
+      if (first.plan_price != null) setAmount(Number(first.plan_price).toFixed(2));
+    }
+  }, [modo, memberId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleMembershipChange(value: string | null) {
+    if (!value) return;
+    setMembershipId(value);
+    const mem = membresiasDelMiembro.find((m) => m.id === value);
+    if (mem?.plan_price != null) setAmount(Number(mem.plan_price).toFixed(2));
+  }
+
   function handleModoChange(nuevoModo: "renovar" | "nuevo") {
     setModo(nuevoModo);
     setPlanId("");
+    setMembershipId("");
+    setAmount("");
   }
 
   return (
@@ -73,7 +93,12 @@ export function RegistrarPagoForm({
         <Select
           name="memberId"
           value={memberId}
-          onValueChange={(value) => setMemberId(value ?? "")}
+          onValueChange={(value: string | null) => {
+            setMemberId(value ?? "");
+            setMembershipId("");
+            setPlanId("");
+            setAmount("");
+          }}
         >
           <SelectTrigger id="memberId" className="w-full">
             <SelectValue placeholder="Selecciona un miembro" />
@@ -116,7 +141,7 @@ export function RegistrarPagoForm({
       {memberId && modo === "renovar" ? (
         <div className="space-y-2">
           <Label htmlFor="membershipId">Membresía a renovar</Label>
-          <Select name="membershipId" defaultValue={membresiasDelMiembro[0]?.id}>
+          <Select name="membershipId" value={membershipId} onValueChange={handleMembershipChange}>
             <SelectTrigger id="membershipId" className="w-full">
               <SelectValue />
             </SelectTrigger>

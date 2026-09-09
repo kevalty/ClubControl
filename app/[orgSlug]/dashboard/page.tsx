@@ -13,7 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 
 function toDateStr(d: Date) {
-  return d.toISOString().split("T")[0];
+  return d.toLocaleDateString("en-CA", { timeZone: "America/Guayaquil" });
 }
 
 export default async function DashboardHomePage({
@@ -121,7 +121,7 @@ export default async function DashboardHomePage({
 
   const recentMembers = recentMembersRes.data ?? [];
 
-  const monthName = now.toLocaleString("es-EC", { month: "long" });
+  const monthName = now.toLocaleString("es-EC", { month: "long", timeZone: "America/Guayaquil" });
 
   function daysUntil(dateStr: string) {
     const diff =
@@ -141,6 +141,7 @@ export default async function DashboardHomePage({
               day: "numeric",
               month: "long",
               year: "numeric",
+              timeZone: "America/Guayaquil",
             })}
           </p>
         </div>

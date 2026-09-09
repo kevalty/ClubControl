@@ -58,7 +58,7 @@ export default async function SesionDetallePage({
     location: string | null;
   } | null;
 
-  const reservados = (bookings ?? []).filter((b) => b.status === "booked").length;
+  const reservados = (bookings ?? []).filter((b) => b.status === "booked" || b.status === "attended").length;
   const action = reservarCupo.bind(null, orgSlug, sessionId, session.organization_id);
 
   return (

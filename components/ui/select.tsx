@@ -6,7 +6,21 @@ import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { cn } from "@/lib/utils"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
-const Select = SelectPrimitive.Root
+// Persistent label cache that survives Portal unmounting.
+// Items register their value→label mapping when they mount and never deregister,
+// so SelectValue can resolve the label even when the Portal is closed.
+const SelectLabelCache = React.createContext<Map<string, string>>(new Map())
+
+// Wrapper around Select.Root that provides a persistent label cache.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function Select({ children, ...props }: SelectPrimitive.Root.Props<any, any>) {
+  const cache = React.useRef(new Map<string, string>())
+  return (
+    <SelectLabelCache.Provider value={cache.current}>
+      <SelectPrimitive.Root {...props}>{children}</SelectPrimitive.Root>
+    </SelectLabelCache.Provider>
+  )
+}
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (
@@ -18,13 +32,25 @@ function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   )
 }
 
-function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
+function SelectValue({ className, children: childrenProp, ...props }: SelectPrimitive.Value.Props) {
+  const cache = React.useContext(SelectLabelCache)
   return (
     <SelectPrimitive.Value
       data-slot="select-value"
       className={cn("flex flex-1 text-left", className)}
       {...props}
-    />
+    >
+      {childrenProp !== undefined
+        ? childrenProp
+        : // Function child: Base UI passes the current value here.
+          // Falls back to cached label so SelectValue works after Portal closes.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ((value: any) => {
+            if (!value && value !== 0) return null
+            const str = String(value)
+            return cache.get(str) ?? str
+          }) as unknown as React.ReactNode}
+    </SelectPrimitive.Value>
   )
 }
 
@@ -111,8 +137,22 @@ function SelectLabel({
 function SelectItem({
   className,
   children,
+  value,
   ...props
 }: SelectPrimitive.Item.Props) {
+  const cache = React.useContext(SelectLabelCache)
+  const textRef = React.useRef<HTMLElement | null>(null)
+
+  // Register label in the persistent cache on every render.
+  // No cleanup: the cache entry survives unmount so SelectValue can resolve
+  // the label after the Portal closes.
+  React.useLayoutEffect(() => {
+    if (textRef.current && cache && value != null) {
+      const text = textRef.current.textContent?.trim()
+      if (text) cache.set(String(value), text)
+    }
+  })
+
   return (
     <SelectPrimitive.Item
       data-slot="select-item"
@@ -120,9 +160,13 @@ function SelectItem({
         "relative flex w-full cursor-default items-center gap-1.5 rounded-md py-1 pr-8 pl-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
         className
       )}
+      value={value}
       {...props}
     >
-      <SelectPrimitive.ItemText className="flex flex-1 shrink-0 gap-2 whitespace-nowrap">
+      <SelectPrimitive.ItemText
+        ref={textRef as React.Ref<HTMLDivElement>}
+        className="flex flex-1 shrink-0 gap-2 whitespace-nowrap"
+      >
         {children}
       </SelectPrimitive.ItemText>
       <SelectPrimitive.ItemIndicator
