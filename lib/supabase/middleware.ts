@@ -2,6 +2,16 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/lib/supabase/database.types";
 
+// Cliente de servicio para buscar orgs por slug (bypasses RLS).
+// Los slugs son públicos (están en la URL), así que leerlos no es un leak.
+function createServiceSupabase() {
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { cookies: { getAll: () => [], setAll: () => {} } }
+  );
+}
+
 // Refresca la sesión de Supabase en cada request y valida acceso a rutas
 // de club (/[orgSlug]/...) contra organization_members. Ver CLAUDE.md 8.2.
 export async function updateSession(request: NextRequest) {
@@ -60,7 +70,9 @@ export async function updateSession(request: NextRequest) {
   );
   if (user && orgSlugMatch) {
     const orgSlug = orgSlugMatch[1];
-    const { data: org } = await supabase
+    // Usa service role para evitar que RLS filtre orgs de otros clubes.
+    // El slug está en la URL pública, no es información sensible.
+    const { data: org } = await createServiceSupabase()
       .from("organizations")
       .select("id")
       .eq("slug", orgSlug)
