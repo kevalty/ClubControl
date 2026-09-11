@@ -13,10 +13,30 @@ function parseMemberForm(formData: FormData) {
     phone: formData.get("phone"),
     documentId: formData.get("documentId") || undefined,
     birthDate: formData.get("birthDate") || undefined,
-    emergencyContactName: formData.get("emergencyContactName") || undefined,
-    emergencyContactPhone: formData.get("emergencyContactPhone") || undefined,
     notes: formData.get("notes") || undefined,
   });
+}
+
+/** Extrae los campos extendidos del formulario (médico, representante, sede, tarifa). */
+function parseExtendedFields(formData: FormData) {
+  return {
+    school: (formData.get("school") as string | null) || null,
+    grade: (formData.get("grade") as string | null) || null,
+    location_id: (formData.get("locationId") as string | null) || null,
+    fee_type_id: (formData.get("feeTypeId") as string | null) || null,
+    // médico
+    blood_type: (formData.get("bloodType") as string | null) || null,
+    allergies: (formData.get("allergies") as string | null) || null,
+    conditions: (formData.get("conditions") as string | null) || null,
+    medications: (formData.get("medications") as string | null) || null,
+    medical_notes: (formData.get("medicalNotes") as string | null) || null,
+    // representante
+    rep_full_name: (formData.get("repFullName") as string | null) || null,
+    rep_relationship: (formData.get("repRelationship") as string | null) || null,
+    rep_phone: (formData.get("repPhone") as string | null) || null,
+    rep_email: (formData.get("repEmail") as string | null) || null,
+    rep_document_id: (formData.get("repDocumentId") as string | null) || null,
+  };
 }
 
 export async function crearMiembro(
@@ -30,6 +50,8 @@ export async function crearMiembro(
     return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
   }
 
+  const ext = parseExtendedFields(formData);
+
   const supabase = await createClient();
   const { data: nuevoMiembro, error } = await supabase
     .from("members")
@@ -40,15 +62,45 @@ export async function crearMiembro(
       phone: parsed.data.phone,
       document_id: parsed.data.documentId || null,
       birth_date: parsed.data.birthDate || null,
-      emergency_contact_name: parsed.data.emergencyContactName || null,
-      emergency_contact_phone: parsed.data.emergencyContactPhone || null,
       notes: parsed.data.notes || null,
+      school: ext.school,
+      grade: ext.grade,
+      location_id: ext.location_id,
+      fee_type_id: ext.fee_type_id,
     })
     .select("id")
     .single();
 
   if (error) {
     return { error: "No se pudo crear el miembro. Intenta de nuevo." };
+  }
+
+  // Guardar datos médicos si hay al menos un campo no vacío
+  const medFields = {
+    blood_type: ext.blood_type,
+    allergies: ext.allergies,
+    conditions: ext.conditions,
+    medications: ext.medications,
+    notes: ext.medical_notes,
+  };
+  if (Object.values(medFields).some(Boolean)) {
+    await supabase.from("member_medical_info").insert({
+      member_id: nuevoMiembro.id,
+      ...medFields,
+    });
+  }
+
+  // Guardar representante principal si tiene nombre y parentesco y teléfono
+  if (ext.rep_full_name && ext.rep_relationship && ext.rep_phone) {
+    await supabase.from("member_representatives").insert({
+      member_id: nuevoMiembro.id,
+      full_name: ext.rep_full_name,
+      relationship: ext.rep_relationship,
+      phone: ext.rep_phone,
+      email: ext.rep_email,
+      document_id: ext.rep_document_id,
+      is_primary: true,
+    });
   }
 
   // CLAUDE.md §8.6: mensaje de bienvenida al crear un miembro nuevo. Se
@@ -77,7 +129,12 @@ export async function actualizarMiembro(
     return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
   }
 
+  const ext = parseExtendedFields(formData);
+
   const supabase = await createClient();
+
+  // Verificar que el miembro pertenece a una organización del usuario actual
+  // (defensa en profundidad además de RLS — CLAUDE.md §3).
   const { error } = await supabase
     .from("members")
     .update({
@@ -86,14 +143,64 @@ export async function actualizarMiembro(
       phone: parsed.data.phone,
       document_id: parsed.data.documentId || null,
       birth_date: parsed.data.birthDate || null,
-      emergency_contact_name: parsed.data.emergencyContactName || null,
-      emergency_contact_phone: parsed.data.emergencyContactPhone || null,
       notes: parsed.data.notes || null,
+      school: ext.school,
+      grade: ext.grade,
+      location_id: ext.location_id,
+      fee_type_id: ext.fee_type_id,
     })
     .eq("id", memberId);
 
   if (error) {
     return { error: "No se pudo actualizar el miembro." };
+  }
+
+  // Upsert datos médicos
+  const medFields = {
+    blood_type: ext.blood_type,
+    allergies: ext.allergies,
+    conditions: ext.conditions,
+    medications: ext.medications,
+    notes: ext.medical_notes,
+  };
+  await supabase
+    .from("member_medical_info")
+    .upsert(
+      { member_id: memberId, ...medFields, updated_at: new Date().toISOString() },
+      { onConflict: "member_id" }
+    );
+
+  // Upsert representante principal: si existe, actualizar; si no, insertar.
+  if (ext.rep_full_name && ext.rep_relationship && ext.rep_phone) {
+    const { data: existingRep } = await supabase
+      .from("member_representatives")
+      .select("id")
+      .eq("member_id", memberId)
+      .eq("is_primary", true)
+      .maybeSingle();
+
+    if (existingRep) {
+      await supabase
+        .from("member_representatives")
+        .update({
+          full_name: ext.rep_full_name,
+          relationship: ext.rep_relationship,
+          phone: ext.rep_phone,
+          email: ext.rep_email,
+          document_id: ext.rep_document_id,
+        })
+        .eq("id", existingRep.id);
+    } else {
+      await supabase.from("member_representatives").insert({
+        member_id: memberId,
+        full_name: ext.rep_full_name,
+        relationship: ext.rep_relationship,
+        phone: ext.rep_phone,
+        email: ext.rep_email,
+        document_id: ext.rep_document_id,
+        is_primary: true,
+      });
+    }
   }
 
   revalidatePath(`/${orgSlug}/dashboard/miembros`);

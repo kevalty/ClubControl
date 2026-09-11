@@ -15,12 +15,32 @@ export default async function NuevoMiembroPage({
     .eq("slug", orgSlug)
     .single();
 
+  const [{ data: locations }, { data: feeTypes }] = await Promise.all([
+    supabase
+      .from("locations")
+      .select("id, name")
+      .eq("organization_id", org!.id)
+      .eq("is_active", true)
+      .order("name"),
+    supabase
+      .from("fee_types")
+      .select("id, name, discount_percent")
+      .eq("organization_id", org!.id)
+      .eq("is_active", true)
+      .order("name"),
+  ]);
+
   const action = crearMiembro.bind(null, orgSlug, org!.id);
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Nuevo miembro</h1>
-      <MiembroForm action={action} submitLabel="Crear miembro" />
+      <MiembroForm
+        action={action}
+        submitLabel="Crear miembro"
+        locations={locations ?? []}
+        feeTypes={feeTypes ?? []}
+      />
     </div>
   );
 }
