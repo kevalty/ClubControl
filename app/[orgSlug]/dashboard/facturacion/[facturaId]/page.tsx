@@ -12,7 +12,7 @@ export default async function VerFacturaPage({
 
   const { data: org } = await supabase
     .from("organizations")
-    .select("name, address, email, logo_url")
+    .select("id, name, address, email, logo_url")
     .eq("slug", orgSlug)
     .maybeSingle();
   if (!org) notFound();
@@ -21,6 +21,7 @@ export default async function VerFacturaPage({
     .from("sim_invoices")
     .select("*")
     .eq("id", facturaId)
+    .eq("organization_id", org.id)
     .maybeSingle();
   if (!factura) notFound();
 
