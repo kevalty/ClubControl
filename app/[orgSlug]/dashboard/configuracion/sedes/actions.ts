@@ -35,6 +35,7 @@ export async function crearSede(
 
 export async function editarSede(
   orgSlug: string,
+  orgId: string,
   sedeId: string,
   _prev: { error?: string } | undefined,
   formData: FormData
@@ -50,7 +51,8 @@ export async function editarSede(
   const { error } = await supabase
     .from("locations")
     .update(parsed.data)
-    .eq("id", sedeId);
+    .eq("id", sedeId)
+    .eq("organization_id", orgId);
   if (error) return { error: error.message };
 
   redirect(`/${orgSlug}/dashboard/configuracion/sedes`);

@@ -10,14 +10,23 @@ export default async function EditarSedeePage({
 }) {
   const { orgSlug, sedeId } = await params;
   const supabase = await createClient();
+
+  const { data: org } = await supabase
+    .from("organizations")
+    .select("id")
+    .eq("slug", orgSlug)
+    .maybeSingle();
+  if (!org) notFound();
+
   const { data: sede } = await supabase
     .from("locations")
     .select("id, name, address, phone")
     .eq("id", sedeId)
+    .eq("organization_id", org.id)
     .maybeSingle();
   if (!sede) notFound();
 
-  const action = editarSede.bind(null, orgSlug, sedeId);
+  const action = editarSede.bind(null, orgSlug, org.id, sedeId);
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Editar sede</h1>
