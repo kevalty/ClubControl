@@ -12,3 +12,4 @@ create index if not exists fee_types_org_idx on fee_types(organization_id);
 
 alter table members
   add column if not exists fee_type_id uuid references fee_types(id) on delete set null;
+create index if not exists members_fee_type_id_idx on members(fee_type_id);
