@@ -107,20 +107,37 @@ function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
   );
 }
 
+function buildTrainerGroups(orgSlug: string): NavGroup[] {
+  return [
+    {
+      label: "Mi trabajo",
+      items: [
+        { href: `/${orgSlug}/dashboard/clases`, label: "Mis clases", icon: CalendarDays },
+        { href: `/${orgSlug}/dashboard/asistencia`, label: "Asistencia", icon: QrCode },
+      ],
+    },
+  ];
+}
+
 export function DashboardSidebar({
   orgSlug,
   orgName,
   pendingPayments = 0,
   pendingInscripciones = 0,
+  userRole = "staff",
 }: {
   orgSlug: string;
   orgName: string;
   pendingPayments?: number;
   pendingInscripciones?: number;
+  userRole?: string;
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const groups = buildGroups(orgSlug, pendingPayments, pendingInscripciones);
+  const groups =
+    userRole === "trainer"
+      ? buildTrainerGroups(orgSlug)
+      : buildGroups(orgSlug, pendingPayments, pendingInscripciones);
 
   const sidebarContent = (
     <div className="flex h-full flex-col">

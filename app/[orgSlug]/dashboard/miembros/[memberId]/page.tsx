@@ -39,12 +39,13 @@ export default async function MiembroDetallePage({
     .eq("user_id", authData.user?.id ?? "")
     .maybeSingle();
 
-  const puedeEliminar =
-    myMembership?.role === "owner" || myMembership?.role === "admin";
+  const userRole = myMembership?.role ?? "staff";
+  const puedeEliminar = userRole === "owner" || userRole === "admin";
+  const isTrainer = userRole === "trainer";
 
   const [
     { data: memberships },
-    { data: payments },
+    paymentsResult,
     { data: medicalInfo },
     { data: representatives },
     { data: locationData },
@@ -55,11 +56,13 @@ export default async function MiembroDetallePage({
       .select("id, start_date, end_date, status, membership_plans(name)")
       .eq("member_id", memberId)
       .order("start_date", { ascending: false }),
-    supabase
-      .from("payments")
-      .select("id, amount, method, status, created_at")
-      .eq("member_id", memberId)
-      .order("created_at", { ascending: false }),
+    isTrainer
+      ? Promise.resolve({ data: null })
+      : supabase
+          .from("payments")
+          .select("id, amount, method, status, created_at")
+          .eq("member_id", memberId)
+          .order("created_at", { ascending: false }),
     supabase
       .from("member_medical_info")
       .select("blood_type, allergies, conditions, medications, notes")
@@ -85,6 +88,8 @@ export default async function MiembroDetallePage({
           .maybeSingle()
       : Promise.resolve({ data: null }),
   ]);
+
+  const payments = paymentsResult.data;
 
   const tieneMembresiaActiva = (memberships ?? []).some(
     (m) => m.status === "active"
@@ -321,41 +326,43 @@ export default async function MiembroDetallePage({
         </CardContent>
       </Card>
 
-      {/* ===== PAGOS ===== */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Pagos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {!payments || payments.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Este miembro todavía no tiene pagos registrados.
-            </p>
-          ) : (
-            <ul className="divide-y">
-              {payments.map((p) => (
-                <li
-                  key={p.id}
-                  className="flex items-center justify-between py-2 text-sm"
-                >
-                  <span>
-                    ${Number(p.amount).toFixed(2)} —{" "}
-                    {PAYMENT_METHOD_LABELS[p.method] ?? p.method}{" "}
-                    <span className="text-muted-foreground">
-                      ({new Date(p.created_at).toLocaleDateString("es-EC")})
-                    </span>
-                  </span>
-                  <Badge
-                    variant={p.status === "approved" ? "default" : "secondary"}
+      {/* ===== PAGOS (oculto para entrenadores) ===== */}
+      {!isTrainer ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Pagos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {!payments || payments.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Este miembro todavía no tiene pagos registrados.
+              </p>
+            ) : (
+              <ul className="divide-y">
+                {payments.map((p) => (
+                  <li
+                    key={p.id}
+                    className="flex items-center justify-between py-2 text-sm"
                   >
-                    {PAYMENT_STATUS_LABELS[p.status] ?? p.status}
-                  </Badge>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+                    <span>
+                      ${Number(p.amount).toFixed(2)} —{" "}
+                      {PAYMENT_METHOD_LABELS[p.method] ?? p.method}{" "}
+                      <span className="text-muted-foreground">
+                        ({new Date(p.created_at).toLocaleDateString("es-EC")})
+                      </span>
+                    </span>
+                    <Badge
+                      variant={p.status === "approved" ? "default" : "secondary"}
+                    >
+                      {PAYMENT_STATUS_LABELS[p.status] ?? p.status}
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      ) : null}
 
       {/* ===== ASISTENCIA ===== */}
       <Card>

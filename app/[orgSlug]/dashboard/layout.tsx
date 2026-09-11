@@ -13,6 +13,8 @@ export default async function DashboardLayout({
   const { orgSlug } = await params;
   const supabase = await createClient();
 
+  const { data: authUser } = await supabase.auth.getUser();
+
   const [{ data: org }, pendingResult, inscripcionesResult] = await Promise.all([
     supabase
       .from("organizations")
@@ -31,6 +33,14 @@ export default async function DashboardLayout({
 
   if (!org) notFound();
 
+  const { data: orgMembership } = await supabase
+    .from("organization_members")
+    .select("role")
+    .eq("organization_id", org.id)
+    .eq("user_id", authUser.user?.id ?? "")
+    .maybeSingle();
+  const userRole = orgMembership?.role ?? "staff";
+
   const pendingPayments = pendingResult.count ?? 0;
   const pendingInscripciones = inscripcionesResult.count ?? 0;
 
@@ -41,6 +51,7 @@ export default async function DashboardLayout({
         orgName={org.name}
         pendingPayments={pendingPayments}
         pendingInscripciones={pendingInscripciones}
+        userRole={userRole}
       />
       <main className="flex-1 overflow-y-auto p-4 md:p-8">{children}</main>
     </div>

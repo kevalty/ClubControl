@@ -88,9 +88,11 @@ export async function updateSession(request: NextRequest) {
     const requiresPortalMembership = pathname.includes("/portal");
 
     if (requiresStaffMembership) {
+      // Fetch role junto con id para poder aplicar restricciones RBAC del trainer.
+      // Solo añade el campo extra; el costo es mínimo (misma query).
       const { data: membership } = await supabase
         .from("organization_members")
-        .select("id")
+        .select("id, role")
         .eq("organization_id", org.id as string)
         .eq("user_id", user.id)
         .eq("status", "active")
@@ -98,6 +100,24 @@ export async function updateSession(request: NextRequest) {
 
       if (!membership) {
         return new NextResponse("No autorizado para este club", { status: 403 });
+      }
+
+      // Entrenadores no pueden acceder a rutas de pagos, planes, equipo ni
+      // configuración. Redirigir a su dashboard en lugar de mostrar 403 (mejor UX).
+      const isTrainerRestrictedPath =
+        membership.role === "trainer" &&
+        (pathname.includes("/pagos") ||
+          pathname.includes("/planes") ||
+          pathname.includes("/equipo") ||
+          pathname.includes("/configuracion") ||
+          pathname.includes("/inscripciones") ||
+          pathname.includes("/facturacion") ||
+          pathname.includes("/whatsapp"));
+
+      if (isTrainerRestrictedPath) {
+        const url = request.nextUrl.clone();
+        url.pathname = `/${orgSlug}/dashboard`;
+        return NextResponse.redirect(url);
       }
     }
 
