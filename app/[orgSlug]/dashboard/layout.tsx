@@ -13,7 +13,7 @@ export default async function DashboardLayout({
   const { orgSlug } = await params;
   const supabase = await createClient();
 
-  const [{ data: org }, pendingResult] = await Promise.all([
+  const [{ data: org }, pendingResult, inscripcionesResult] = await Promise.all([
     supabase
       .from("organizations")
       .select("id, name")
@@ -23,11 +23,16 @@ export default async function DashboardLayout({
       .from("payments")
       .select("*", { count: "exact", head: true })
       .eq("status", "pending_review"),
+    supabase
+      .from("members")
+      .select("*", { count: "exact", head: true })
+      .eq("registration_status", "pending_approval"),
   ]);
 
   if (!org) notFound();
 
   const pendingPayments = pendingResult.count ?? 0;
+  const pendingInscripciones = inscripcionesResult.count ?? 0;
 
   return (
     <div className="flex h-full min-h-screen flex-col bg-[#08080f] md:flex-row">
@@ -35,6 +40,7 @@ export default async function DashboardLayout({
         orgSlug={orgSlug}
         orgName={org.name}
         pendingPayments={pendingPayments}
+        pendingInscripciones={pendingInscripciones}
       />
       <main className="flex-1 overflow-y-auto p-4 md:p-8">{children}</main>
     </div>

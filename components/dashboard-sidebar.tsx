@@ -17,6 +17,7 @@ import {
   X,
   LogOut,
   Megaphone,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logout } from "@/app/auth/actions";
@@ -30,7 +31,11 @@ type NavItem = {
 
 type NavGroup = { label: string; items: NavItem[] };
 
-function buildGroups(orgSlug: string, pendingPayments: number): NavGroup[] {
+function buildGroups(
+  orgSlug: string,
+  pendingPayments: number,
+  pendingInscripciones: number
+): NavGroup[] {
   return [
     {
       label: "General",
@@ -42,6 +47,12 @@ function buildGroups(orgSlug: string, pendingPayments: number): NavGroup[] {
           label: "Pagos",
           icon: CreditCard,
           badge: pendingPayments > 0 ? pendingPayments : undefined,
+        },
+        {
+          href: `/${orgSlug}/dashboard/inscripciones`,
+          label: "Inscripciones",
+          icon: ClipboardList,
+          badge: pendingInscripciones > 0 ? pendingInscripciones : undefined,
         },
       ],
     },
@@ -100,14 +111,16 @@ export function DashboardSidebar({
   orgSlug,
   orgName,
   pendingPayments = 0,
+  pendingInscripciones = 0,
 }: {
   orgSlug: string;
   orgName: string;
   pendingPayments?: number;
+  pendingInscripciones?: number;
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const groups = buildGroups(orgSlug, pendingPayments);
+  const groups = buildGroups(orgSlug, pendingPayments, pendingInscripciones);
 
   const sidebarContent = (
     <div className="flex h-full flex-col">

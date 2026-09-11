@@ -121,6 +121,9 @@ export default async function MiembroDetallePage({
             tieneEmail={!!member.email}
             tieneAccesoPortal={!!member.user_id}
             puedeEliminar={puedeEliminar}
+            tieneRepresentante={
+              !!(representatives && representatives.length > 0 && representatives[0].phone)
+            }
           />
         </div>
       </div>

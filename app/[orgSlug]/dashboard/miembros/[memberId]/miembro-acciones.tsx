@@ -19,6 +19,7 @@ import {
   generarAccesoPortal,
   eliminarMiembro,
 } from "@/app/[orgSlug]/dashboard/miembros/actions";
+import { enviarLinkInscripcion } from "@/app/[orgSlug]/dashboard/miembros/[memberId]/acciones-extended";
 
 export function MiembroAcciones({
   orgSlug,
@@ -27,6 +28,7 @@ export function MiembroAcciones({
   tieneEmail,
   tieneAccesoPortal,
   puedeEliminar,
+  tieneRepresentante = false,
 }: {
   orgSlug: string;
   memberId: string;
@@ -34,6 +36,7 @@ export function MiembroAcciones({
   tieneEmail: boolean;
   tieneAccesoPortal: boolean;
   puedeEliminar: boolean;
+  tieneRepresentante?: boolean;
 }) {
   const [pending, startTransition] = useTransition();
 
@@ -63,6 +66,14 @@ export function MiembroAcciones({
     });
   };
 
+  const enviarLink = () => {
+    startTransition(async () => {
+      const result = await enviarLinkInscripcion(orgSlug, memberId);
+      if (result?.error) toast.error(result.error);
+      else toast.success("Link de inscripción enviado por WhatsApp al representante.");
+    });
+  };
+
   return (
     <div className="flex flex-wrap gap-2">
       {estado !== "expired" && estado !== "inactive" ? (
@@ -77,6 +88,18 @@ export function MiembroAcciones({
         title={!tieneEmail ? "El miembro necesita un correo registrado" : undefined}
       >
         {tieneAccesoPortal ? "Reenviar acceso al portal" : "Generar acceso al portal"}
+      </Button>
+      <Button
+        variant="outline"
+        disabled={pending || !tieneRepresentante}
+        onClick={enviarLink}
+        title={
+          !tieneRepresentante
+            ? "El miembro no tiene un representante con teléfono registrado"
+            : "Enviar link del formulario de inscripción al representante por WhatsApp"
+        }
+      >
+        Enviar link de inscripción
       </Button>
       {puedeEliminar ? (
         <Dialog>
