@@ -24,13 +24,16 @@ export async function crearFacturaSimulada(
   const supabase = await createClient();
   const { data: authUser } = await supabase.auth.getUser();
 
-  // Get next sequential number for this org
-  const { count } = await supabase
+  // Get next sequential number: MAX + 1 to avoid gaps from deletes
+  const { data: maxRow } = await supabase
     .from("sim_invoices")
-    .select("*", { count: "exact", head: true })
-    .eq("organization_id", orgId);
+    .select("sequential_number")
+    .eq("organization_id", orgId)
+    .order("sequential_number", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  const sequential = (count ?? 0) + 1;
+  const sequential = (maxRow?.sequential_number ?? 0) + 1;
   const { data: d } = parsed;
   const tax_amount = Number((d.subtotal * 0.15).toFixed(2));
   const total = Number((d.subtotal + tax_amount).toFixed(2));
@@ -49,6 +52,12 @@ export async function crearFacturaSimulada(
     created_by: authUser.user?.id ?? null,
   });
 
-  if (error) return { error: error.message };
+  // Unique constraint on (organization_id, sequential_number) — retry message if collision
+  if (error) {
+    if (error.code === "23505") {
+      return { error: "Número de comprobante duplicado, intenta de nuevo." };
+    }
+    return { error: "No se pudo crear la factura simulada." };
+  }
   redirect(`/${orgSlug}/dashboard/facturacion`);
 }
