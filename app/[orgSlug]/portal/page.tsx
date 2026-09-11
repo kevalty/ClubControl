@@ -57,6 +57,25 @@ export default async function PortalHomePage({
           )}
         </CardContent>
       </Card>
+
+      {/* Carnet digital */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Mi carnet</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-3">
+            Muestra tu carnet con código QR para registrar tu asistencia.
+          </p>
+          <LinkButton
+            href={`/${orgSlug}/carnet/${member.id}?token=${member.qr_code}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Ver mi carnet
+          </LinkButton>
+        </CardContent>
+      </Card>
     </div>
   );
 }

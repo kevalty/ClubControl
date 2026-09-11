@@ -119,6 +119,14 @@ export default async function MiembroDetallePage({
           >
             Editar
           </LinkButton>
+          <LinkButton
+            href={`/${orgSlug}/carnet/${memberId}?token=${member.qr_code}`}
+            variant="outline"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Ver carnet
+          </LinkButton>
           <MiembroAcciones
             orgSlug={orgSlug}
             memberId={memberId}

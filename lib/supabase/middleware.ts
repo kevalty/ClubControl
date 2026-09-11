@@ -54,6 +54,8 @@ export async function updateSession(request: NextRequest) {
     // credencial es el propio código QR de cada miembro, no una sesión.
     pathname.endsWith("/checkin") ||
     pathname.match(/^\/[^/]+\/inscripcion/) ||
+    // Carnet digital (CLAUDE.md §8.7): acceso público con token qr_code en query param.
+    pathname.match(/^\/[^/]+\/carnet\//) ||
     // PWA (CLAUDE.md §10): un visitante sin sesión (ej. la landing) también
     // tiene que poder descargar el manifest y registrar el service worker.
     pathname === "/manifest.webmanifest" ||
