@@ -52,6 +52,10 @@ export async function crearMiembro(
 
   const ext = parseExtendedFields(formData);
 
+  if (!ext.rep_full_name || !ext.rep_relationship || !ext.rep_phone) {
+    return { error: "Los datos del representante son obligatorios (nombre, parentesco y teléfono)." };
+  }
+
   const supabase = await createClient();
   const { data: nuevoMiembro, error } = await supabase
     .from("members")
@@ -130,6 +134,10 @@ export async function actualizarMiembro(
   }
 
   const ext = parseExtendedFields(formData);
+
+  if (!ext.rep_full_name || !ext.rep_relationship || !ext.rep_phone) {
+    return { error: "Los datos del representante son obligatorios (nombre, parentesco y teléfono)." };
+  }
 
   const supabase = await createClient();
 
