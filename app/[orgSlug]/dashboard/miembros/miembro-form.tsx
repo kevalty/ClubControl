@@ -259,30 +259,33 @@ export function MiembroForm({
         {/* ===== TAB: REPRESENTANTE ===== */}
         <TabsContent value="representante" className="space-y-4 pt-4">
           <div className="space-y-2">
-            <Label htmlFor="repFullName">Nombre completo del representante</Label>
+            <Label htmlFor="repFullName">Nombre completo del representante *</Label>
             <Input
               id="repFullName"
               name="repFullName"
               defaultValue={initialValues?.rep_full_name ?? ""}
+              required
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="repRelationship">Parentesco</Label>
+              <Label htmlFor="repRelationship">Parentesco *</Label>
               <Input
                 id="repRelationship"
                 name="repRelationship"
                 defaultValue={initialValues?.rep_relationship ?? ""}
                 placeholder="Padre, Madre, Tutor..."
+                required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="repPhone">Teléfono del representante</Label>
+              <Label htmlFor="repPhone">Teléfono del representante *</Label>
               <Input
                 id="repPhone"
                 name="repPhone"
                 type="tel"
                 defaultValue={initialValues?.rep_phone ?? ""}
+                required
               />
             </div>
           </div>

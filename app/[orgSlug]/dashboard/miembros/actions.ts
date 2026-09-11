@@ -133,8 +133,14 @@ export async function actualizarMiembro(
 
   const supabase = await createClient();
 
-  // Verificar que el miembro pertenece a una organización del usuario actual
-  // (defensa en profundidad además de RLS — CLAUDE.md §3).
+  const { data: org } = await supabase
+    .from("organizations")
+    .select("id")
+    .eq("slug", orgSlug)
+    .maybeSingle();
+  if (!org) return { error: "Organización no encontrada." };
+
+  // Defensa en profundidad (CLAUDE.md §3 + §11.1): filtrar por id Y organization_id.
   const { error } = await supabase
     .from("members")
     .update({
@@ -149,7 +155,8 @@ export async function actualizarMiembro(
       location_id: ext.location_id,
       fee_type_id: ext.fee_type_id,
     })
-    .eq("id", memberId);
+    .eq("id", memberId)
+    .eq("organization_id", org.id);
 
   if (error) {
     return { error: "No se pudo actualizar el miembro." };
