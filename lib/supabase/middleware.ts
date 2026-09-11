@@ -53,6 +53,7 @@ export async function updateSession(request: NextRequest) {
     // Modo kiosco (CLAUDE.md §8.7): tablet en la entrada, sin login. La
     // credencial es el propio código QR de cada miembro, no una sesión.
     pathname.endsWith("/checkin") ||
+    pathname.match(/^\/[^/]+\/inscripcion/) ||
     // PWA (CLAUDE.md §10): un visitante sin sesión (ej. la landing) también
     // tiene que poder descargar el manifest y registrar el service worker.
     pathname === "/manifest.webmanifest" ||

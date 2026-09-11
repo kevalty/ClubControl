@@ -60,6 +60,9 @@ function buildGroups(orgSlug: string, pendingPayments: number): NavGroup[] {
         { href: `/${orgSlug}/dashboard/configuracion/whatsapp`, label: "WhatsApp", icon: MessageCircle },
         { href: `/${orgSlug}/dashboard/whatsapp/anuncio`, label: "Enviar anuncio", icon: Megaphone },
         { href: `/${orgSlug}/dashboard/configuracion/suscripcion`, label: "Suscripción", icon: Settings },
+        { href: `/${orgSlug}/dashboard/configuracion/sedes`, label: "Sedes", icon: Landmark },
+        { href: `/${orgSlug}/dashboard/configuracion/rubros`, label: "Rubros", icon: Landmark },
+        { href: `/${orgSlug}/dashboard/facturacion`, label: "Facturación", icon: CreditCard },
       ],
     },
   ];
