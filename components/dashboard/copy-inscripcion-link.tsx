@@ -23,10 +23,13 @@ export function CopyInscripcionLink({ orgSlug }: { orgSlug: string }) {
   }
 
   function generatePersonal() {
-    if (!studentName.trim() || !origin) return;
+    const name = studentName.trim();
+    if (!name) return;
+    const base = window.location.origin; // siempre disponible en el handler (client-only)
     const ref = crypto.randomUUID().slice(0, 8);
-    const url = `${origin}/${orgSlug}/inscripcion?para=${encodeURIComponent(studentName.trim())}&ref=${ref}`;
+    const url = `${base}/${orgSlug}/inscripcion?para=${encodeURIComponent(name)}&ref=${ref}`;
     setPersonalLink(url);
+    if (!origin) setOrigin(base);
   }
 
   function copyPersonal() {

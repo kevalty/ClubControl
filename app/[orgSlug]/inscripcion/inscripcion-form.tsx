@@ -68,7 +68,7 @@ export function InscripcionForm({
         <h2 className="text-xl font-semibold">¡Solicitud enviada correctamente!</h2>
         <p className="text-muted-foreground">
           Recibimos la solicitud de inscripción
-          {studentName ? ` para <strong>${studentName}</strong>` : ""}.
+          {studentName ? <> para <span className="font-semibold">{studentName}</span></> : null}.{" "}
           El equipo la revisará y se pondrán en contacto contigo pronto.
         </p>
       </div>
