@@ -6,22 +6,36 @@
 ## Preparación (hacer antes de la reunión)
 
 ### Cuentas necesarias
-| Cuenta | Correo | Rol | Para mostrar |
+| Cuenta | Correo | Rol | Quién lo crea |
 |---|---|---|---|
-| Administrador | `kevito418+testerowner@gmail.com` | owner | Todo el dashboard |
-| Entrenador | `kevito418+trainer@gmail.com` | trainer | Vista restringida |
+| Administrador | `kevito418+testerowner@gmail.com` | owner | Ya existe |
+| Entrenador | `kevito418+trainer@gmail.com` | trainer | **Tú** (ver paso manual abajo) |
 
-### Datos de prueba mínimos (crear antes)
-- 1 plan de membresía activo (ej. "Mensualidad FENIX", $32/mes, 30 días)
-- 2–3 estudiantes ya creados con perfil completo
-- 1 rubro creado (ej. "Descuento hermanos", 15%)
-- 1 sede creada (ej. "Coliseo Riobamba")
+### Datos de prueba — YA ESTÁN LISTOS ✅
+- Plan: **Mensualidad FENIX** — $32.00/mes, 30 días
+- Rubros: **Descuento hermanos** (15%), **Convenio deportivo** (10%)
+- Sedes: **Coliseo Riobamba**, **Cancha Norte**
+- Estudiante 1: **Carlos Andrés Pérez Salazar** — O+, madre: María Salazar 0987654321
+  → Ficha: `http://localhost:3000/club-qa-test-v2/dashboard/miembros/06b6a6b4-54de-42b9-a293-6255d8e6cac9`
+  → Carnet: `http://localhost:3000/club-qa-test-v2/carnet/06b6a6b4-54de-42b9-a293-6255d8e6cac9?token=42787a3d7d448ff4eff21db05222ef5a`
+- Estudiante 2: **Sofía Valentina Torres Mora** — A+, alergia a penicilina, asma leve, padre: Roberto Torres 0976543210
+  → Ficha: `http://localhost:3000/club-qa-test-v2/dashboard/miembros/6b3f9ae8-9d4f-4109-826d-3d8f035aec5f`
+
+### Paso manual (solo tú puedes hacerlo): crear el entrenador
+La página `/dashboard/equipo` no existe aún. Crea el registro directo en Supabase Studio:
+
+1. Ir a `supabase.com` → tu proyecto → **Table Editor** → tabla `organization_members`
+2. Insertar fila:
+   - `organization_id`: el id de tu org de prueba
+   - `user_id`: el id de `kevito418+trainer@gmail.com` (búscalo en Authentication → Users)
+   - `role`: `trainer`
+   - `status`: `active`
+3. Si ese correo no tiene cuenta aún: Authentication → Users → **Invite user** con ese correo, luego crea la fila
 
 ### URL base
 ```
-http://localhost:3000/[orgSlug]/dashboard
+http://localhost:3000/club-qa-test-v2/dashboard
 ```
-Reemplaza `[orgSlug]` con el slug de tu organización de prueba.
 
 ---
 
@@ -45,10 +59,11 @@ Reemplaza `[orgSlug]` con el slug de tu organización de prueba.
 
 1. Desde la ficha del estudiante, clic en **"Ver carnet"** (abre nueva pestaña)
 2. Mostrar el carnet: nombre, estado ACTIVO, código QR
-3. Abrir la URL del carnet en el celular (sin cuenta, sin app)
+3. Abrir esta URL en el celular (sin cuenta, sin app):
+   `http://localhost:3000/club-qa-test-v2/carnet/06b6a6b4-54de-42b9-a293-6255d8e6cac9?token=42787a3d7d448ff4eff21db05222ef5a`
 4. **Mensaje clave:** *"El padre o el portero puede escanear este QR con cualquier celular para verificar que el estudiante está activo"*
 
-> Tip: antes de la demo, abre el carnet en tu celular y tenlo listo para mostrarlo físicamente.
+> Tip: abre esa URL en tu celular ahora mismo y tenla lista para mostrarla físicamente en la reunión.
 
 ---
 
