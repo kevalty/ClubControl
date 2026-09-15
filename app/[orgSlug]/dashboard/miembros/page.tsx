@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { CopyInscripcionLink } from "@/components/dashboard/copy-inscripcion-link";
 import { LinkButton } from "@/components/ui/link-button";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -81,6 +82,8 @@ export default async function MiembrosPage({
           </LinkButton>
         </div>
       </div>
+
+      <CopyInscripcionLink orgSlug={orgSlug} />
 
       <form className="flex flex-wrap gap-3" method="get">
         <Input
