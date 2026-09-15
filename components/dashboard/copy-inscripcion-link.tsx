@@ -1,11 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 export function CopyInscripcionLink({ orgSlug }: { orgSlug: string }) {
   const [copied, setCopied] = useState(false);
-  const url = `${window.location.origin}/${orgSlug}/inscripcion`;
+  const [origin, setOrigin] = useState("");
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
+  const url = `${origin}/${orgSlug}/inscripcion`;
 
   function copy() {
     navigator.clipboard.writeText(url).then(() => {
