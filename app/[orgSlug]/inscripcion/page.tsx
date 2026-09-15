@@ -52,6 +52,12 @@ export default async function InscripcionPage({
           <h1 className="text-2xl font-bold">{org.name}</h1>
           <p className="text-muted-foreground">Formulario de inscripción</p>
         </div>
+        {studentName ? (
+          <div className="mb-4 rounded-lg bg-primary/10 border border-primary/20 px-4 py-2 text-sm text-center">
+            Formulario de inscripción para{" "}
+            <span className="font-semibold">{studentName}</span>
+          </div>
+        ) : null}
         <InscripcionForm
           orgSlug={orgSlug}
           orgId={org.id}

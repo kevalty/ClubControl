@@ -79,12 +79,6 @@ export function InscripcionForm({
 
   return (
     <div className="rounded-lg border bg-card p-6">
-      {studentName ? (
-        <div className="mb-4 rounded-lg bg-primary/10 border border-primary/20 px-4 py-2 text-sm text-center">
-          Formulario de inscripción para <span className="font-semibold">{studentName}</span>
-        </div>
-      ) : null}
-
       <form action={formAction} className="space-y-5">
         {state?.error ? (
           <Alert variant="destructive">
