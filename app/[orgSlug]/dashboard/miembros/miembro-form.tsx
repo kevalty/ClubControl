@@ -78,7 +78,7 @@ export function MiembroForm({
         </TabsList>
 
         {/* ===== TAB: PERSONALES ===== */}
-        <TabsContent value="personales" className="space-y-4 pt-4">
+        <TabsContent forceMount value="personales" className="space-y-4 pt-4 data-[state=inactive]:hidden">
           <div className="space-y-2">
             <Label htmlFor="fullName">Nombre completo *</Label>
             <Input
@@ -199,7 +199,7 @@ export function MiembroForm({
         </TabsContent>
 
         {/* ===== TAB: MÉDICO ===== */}
-        <TabsContent value="medico" className="space-y-4 pt-4">
+        <TabsContent forceMount value="medico" className="space-y-4 pt-4 data-[state=inactive]:hidden">
           <div className="space-y-2">
             <Label htmlFor="bloodType">Tipo de sangre</Label>
             <Select
@@ -257,7 +257,7 @@ export function MiembroForm({
         </TabsContent>
 
         {/* ===== TAB: REPRESENTANTE ===== */}
-        <TabsContent value="representante" className="space-y-4 pt-4">
+        <TabsContent forceMount value="representante" className="space-y-4 pt-4 data-[state=inactive]:hidden">
           <div className="space-y-2">
             <Label htmlFor="repFullName">Nombre completo del representante *</Label>
             <Input

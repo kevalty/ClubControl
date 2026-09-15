@@ -109,7 +109,7 @@ export function InscripcionForm({
           </TabsList>
 
           {/* ===== TAB 1: DATOS DEL ESTUDIANTE ===== */}
-          <TabsContent value="personales" className="space-y-4 pt-4">
+          <TabsContent forceMount value="personales" className="space-y-4 pt-4 data-[state=inactive]:hidden">
             <div className="space-y-2">
               <Label htmlFor="fullName">Nombre completo del estudiante *</Label>
               <Input
@@ -180,7 +180,7 @@ export function InscripcionForm({
           </TabsContent>
 
           {/* ===== TAB 2: INFORMACIÓN MÉDICA ===== */}
-          <TabsContent value="medico" className="space-y-4 pt-4">
+          <TabsContent forceMount value="medico" className="space-y-4 pt-4 data-[state=inactive]:hidden">
             <p className="text-xs text-muted-foreground">
               Esta información es necesaria para la seguridad del estudiante durante los entrenamientos.
             </p>
@@ -234,7 +234,7 @@ export function InscripcionForm({
           </TabsContent>
 
           {/* ===== TAB 3: REPRESENTANTE ===== */}
-          <TabsContent value="representante" className="space-y-4 pt-4">
+          <TabsContent forceMount value="representante" className="space-y-4 pt-4 data-[state=inactive]:hidden">
             <p className="text-xs text-muted-foreground">
               Datos de la persona responsable del estudiante (padre, madre o tutor).
             </p>
