@@ -4,10 +4,14 @@ import { InscripcionForm } from "./inscripcion-form";
 
 export default async function InscripcionPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ orgSlug: string }>;
+  searchParams: Promise<{ para?: string }>;
 }) {
   const { orgSlug } = await params;
+  const { para } = await searchParams;
+  const studentName = para ? decodeURIComponent(para) : "";
   // Use service client: this is a public route with no auth session
   const supabase = createServiceClient();
 
@@ -53,6 +57,7 @@ export default async function InscripcionPage({
           orgId={org.id}
           locations={locations ?? []}
           feeTypes={feeTypes ?? []}
+          studentName={studentName}
         />
       </div>
     </main>
