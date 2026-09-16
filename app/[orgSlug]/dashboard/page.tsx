@@ -146,7 +146,7 @@ export default async function DashboardHomePage({
           </p>
         </div>
         <Link
-          href={`/${orgSlug}/dashboard/miembros/nuevo`}
+          href={`/${orgSlug}/dashboard/miembros`}
           className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
         >
           + Nuevo miembro
@@ -276,7 +276,7 @@ export default async function DashboardHomePage({
           <div className="overflow-hidden rounded-xl bg-[#111120]">
             {recentMembers.length === 0 ? (
               <div className="px-5 py-10 text-center text-sm text-[#6b7280]">
-                Aún no tienes miembros. <Link href={`/${orgSlug}/dashboard/miembros/nuevo`} className="text-[#818cf8] hover:underline">Crea el primero</Link>
+                Aún no tienes miembros. <Link href={`/${orgSlug}/dashboard/miembros`} className="text-[#818cf8] hover:underline">Crea el primero</Link>
               </div>
             ) : (
               <table className="w-full text-sm">
