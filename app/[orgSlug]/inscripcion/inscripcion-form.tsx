@@ -79,7 +79,7 @@ export function InscripcionForm({
 
   return (
     <div className="rounded-lg border bg-card p-6">
-      <form action={formAction} className="space-y-5">
+      <form action={formAction} className="space-y-5" suppressHydrationWarning>
         {state?.error ? (
           <Alert variant="destructive">
             <AlertDescription className="space-y-1">
