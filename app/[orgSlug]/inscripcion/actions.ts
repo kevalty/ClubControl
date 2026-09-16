@@ -10,6 +10,7 @@ const InscripcionSchema = z.object({
   school: z.string({ required_error: "Unidad educativa requerida" }).min(1, "Unidad educativa requerida"),
   grade: z.string({ required_error: "Curso requerido" }).min(1, "Curso requerido"),
   locationId: z.string().uuid().optional().or(z.literal("")),
+  feeTypeId: z.string().uuid().optional().or(z.literal("")),
   bloodType: z.string({ required_error: "Selecciona el tipo de sangre (tab Información médica)" }).min(1, "Selecciona el tipo de sangre (tab Información médica)"),
   allergies: z.string({ required_error: "Completa el campo Alergias (tab Información médica)" }).min(1, "Completa el campo Alergias (tab Información médica)"),
   conditions: z.string({ required_error: "Completa el campo Condiciones médicas (tab Información médica)" }).min(1, "Completa el campo Condiciones médicas (tab Información médica)"),
@@ -28,27 +29,29 @@ export async function submitInscripcion(
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
   const raw = Object.fromEntries(formData.entries());
+  console.log("[inscripcion] raw fields:", Object.keys(raw).join(", "));
+  console.log("[inscripcion] bloodType:", raw.bloodType, "| allergies:", raw.allergies, "| repFullName:", raw.repFullName);
+
   const parsed = InscripcionSchema.safeParse(raw);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
 
   const d = parsed.data;
-  // service client: public route has no auth session — bypasses RLS safely
   const supabase = createServiceClient();
 
-  // Insert member with registration_status = 'pending_approval'
   const { data: member, error: memberError } = await supabase
     .from("members")
     .insert({
       organization_id: orgId,
       full_name: d.fullName,
-      phone: d.repPhone, // representative's phone as primary contact
+      phone: d.repPhone,
       birth_date: d.birthDate || null,
       document_id: d.documentId || null,
       school: d.school,
       grade: d.grade,
       location_id: d.locationId || null,
+      fee_type_id: d.feeTypeId || null,
       registration_status: "pending_approval",
-      status: "inactive", // inactive until approved
+      status: "inactive",
     })
     .select("id")
     .single();
@@ -58,6 +61,8 @@ export async function submitInscripcion(
     return { error: "Error al guardar la solicitud. Intenta de nuevo." };
   }
 
+  console.log("[inscripcion] member created:", member.id);
+
   const { error: medError } = await supabase.from("member_medical_info").insert({
     member_id: member.id,
     blood_type: d.bloodType,
@@ -65,7 +70,10 @@ export async function submitInscripcion(
     conditions: d.conditions,
     medications: d.medications || null,
   });
-  if (medError) console.error("[inscripcion] medError:", medError);
+  if (medError) {
+    console.error("[inscripcion] medError:", JSON.stringify(medError));
+    return { error: `Error guardando info médica: ${medError.message} (código: ${medError.code})` };
+  }
 
   const { error: repError } = await supabase.from("member_representatives").insert({
     member_id: member.id,
@@ -76,9 +84,11 @@ export async function submitInscripcion(
     document_id: d.repDocumentId || null,
     is_primary: true,
   });
-  if (repError) console.error("[inscripcion] repError:", repError);
+  if (repError) {
+    console.error("[inscripcion] repError:", JSON.stringify(repError));
+    return { error: `Error guardando representante: ${repError.message} (código: ${repError.code})` };
+  }
 
-  // Notify owners/admins of the org in-app
   const { data: admins } = await supabase
     .from("organization_members")
     .select("user_id")
