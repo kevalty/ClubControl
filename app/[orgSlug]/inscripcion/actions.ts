@@ -58,17 +58,16 @@ export async function submitInscripcion(
     return { error: "Error al guardar la solicitud. Intenta de nuevo." };
   }
 
-  // Insert medical info (ignore individual errors — don't block submission)
-  await supabase.from("member_medical_info").insert({
+  const { error: medError } = await supabase.from("member_medical_info").insert({
     member_id: member.id,
     blood_type: d.bloodType,
     allergies: d.allergies,
     conditions: d.conditions,
     medications: d.medications || null,
   });
+  if (medError) console.error("[inscripcion] medError:", medError);
 
-  // Insert primary representative
-  await supabase.from("member_representatives").insert({
+  const { error: repError } = await supabase.from("member_representatives").insert({
     member_id: member.id,
     full_name: d.repFullName,
     relationship: d.repRelationship,
@@ -77,6 +76,7 @@ export async function submitInscripcion(
     document_id: d.repDocumentId || null,
     is_primary: true,
   });
+  if (repError) console.error("[inscripcion] repError:", repError);
 
   // Notify owners/admins of the org in-app
   const { data: admins } = await supabase

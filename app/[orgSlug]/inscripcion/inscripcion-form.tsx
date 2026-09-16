@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -52,7 +52,6 @@ export function InscripcionForm({
   const [activeTab, setActiveTab] = useState<Tab>("personales");
   const [errorTab, setErrorTab] = useState<Tab | null>(null);
 
-  // Cuando llega un error, navegar al tab que lo contiene
   useEffect(() => {
     if (state?.error) {
       const tab = getErrorTab(state.error);
@@ -75,8 +74,6 @@ export function InscripcionForm({
     );
   }
 
-  const currentIndex = TABS.indexOf(activeTab);
-
   return (
     <div className="rounded-lg border bg-card p-6">
       <form action={formAction} className="space-y-5" suppressHydrationWarning>
@@ -96,6 +93,7 @@ export function InscripcionForm({
           </Alert>
         ) : null}
 
+        {/* Barra de tabs — solo visual, no controla el montaje del contenido */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as Tab)}>
           <TabsList className="grid w-full grid-cols-3">
             {TABS.map((tab) => (
@@ -107,179 +105,182 @@ export function InscripcionForm({
               </TabsTrigger>
             ))}
           </TabsList>
+        </Tabs>
 
-          {/* ===== TAB 1: DATOS DEL ESTUDIANTE ===== */}
-          <TabsContent forceMount value="personales" className="space-y-4 pt-4 data-[state=inactive]:hidden">
+        {/* ===== TAB 1: DATOS DEL ESTUDIANTE ===== */}
+        {/* Usamos div con hidden en lugar de TabsContent para que los inputs SIEMPRE */}
+        {/* estén en el DOM y en el FormData — Base UI agrega inert a los paneles */}
+        {/* inactivos, lo cual excluye los inputs del FormData aunque estén montados. */}
+        <div className={activeTab === "personales" ? "space-y-4" : "hidden"}>
+          <div className="space-y-2">
+            <Label htmlFor="fullName">Nombre completo del estudiante *</Label>
+            <Input
+              id="fullName"
+              name="fullName"
+              defaultValue={studentName}
+              required
+              placeholder="Nombres y apellidos completos"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="fullName">Nombre completo del estudiante *</Label>
-              <Input
-                id="fullName"
-                name="fullName"
-                defaultValue={studentName}
-                required
-                placeholder="Nombres y apellidos completos"
-              />
+              <Label htmlFor="birthDate">Fecha de nacimiento *</Label>
+              <Input id="birthDate" name="birthDate" type="date" required />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="birthDate">Fecha de nacimiento *</Label>
-                <Input id="birthDate" name="birthDate" type="date" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="documentId">Cédula del estudiante</Label>
-                <Input id="documentId" name="documentId" placeholder="Opcional" />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="school">Unidad educativa *</Label>
-                <Input id="school" name="school" required placeholder="Nombre del colegio o escuela" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="grade">Curso / Año *</Label>
-                <Input id="grade" name="grade" required placeholder="Ej: 8vo A" />
-              </div>
-            </div>
-            {locations.length > 0 ? (
-              <div className="space-y-2">
-                <Label>Sede de entrenamiento</Label>
-                <Select name="locationId">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar sede (opcional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {locations.map((l) => (
-                      <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : null}
-            {feeTypes.length > 0 ? (
-              <div className="space-y-2">
-                <Label>Tipo de tarifa</Label>
-                <Select name="feeTypeId">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar tarifa (opcional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {feeTypes.map((f) => (
-                      <SelectItem key={f.id} value={f.id}>
-                        {f.name}{f.discount_percent > 0 ? ` (${f.discount_percent}% desc.)` : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : null}
-            <div className="flex justify-end pt-2">
-              <Button type="button" onClick={() => setActiveTab("medico")}>
-                Siguiente: Información médica →
-              </Button>
-            </div>
-          </TabsContent>
-
-          {/* ===== TAB 2: INFORMACIÓN MÉDICA ===== */}
-          <TabsContent forceMount value="medico" className="space-y-4 pt-4 data-[state=inactive]:hidden">
-            <p className="text-xs text-muted-foreground">
-              Esta información es necesaria para la seguridad del estudiante durante los entrenamientos.
-            </p>
             <div className="space-y-2">
-              <Label htmlFor="bloodType">Tipo de sangre *</Label>
-              <Select name="bloodType">
-                <SelectTrigger id="bloodType">
-                  <SelectValue placeholder="Selecciona el tipo de sangre" />
+              <Label htmlFor="documentId">Cédula del estudiante</Label>
+              <Input id="documentId" name="documentId" placeholder="Opcional" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="school">Unidad educativa *</Label>
+              <Input id="school" name="school" required placeholder="Nombre del colegio o escuela" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="grade">Curso / Año *</Label>
+              <Input id="grade" name="grade" required placeholder="Ej: 8vo A" />
+            </div>
+          </div>
+          {locations.length > 0 ? (
+            <div className="space-y-2">
+              <Label>Sede de entrenamiento</Label>
+              <Select name="locationId">
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar sede (opcional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  {locations.map((l) => (
+                    <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+          ) : null}
+          {feeTypes.length > 0 ? (
             <div className="space-y-2">
-              <Label htmlFor="allergies">Alergias *</Label>
-              <Textarea
-                id="allergies"
-                name="allergies"
-                required
-                placeholder="Escribe 'Ninguna' si no tiene alergias conocidas"
-              />
+              <Label>Tipo de tarifa</Label>
+              <Select name="feeTypeId">
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar tarifa (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {feeTypes.map((f) => (
+                    <SelectItem key={f.id} value={f.id}>
+                      {f.name}{f.discount_percent > 0 ? ` (${f.discount_percent}% desc.)` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="conditions">Condiciones médicas *</Label>
-              <Textarea
-                id="conditions"
-                name="conditions"
-                required
-                placeholder="Escribe 'Ninguna' si no tiene condiciones médicas"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="medications">Medicamentos que toma</Label>
-              <Textarea
-                id="medications"
-                name="medications"
-                placeholder="Escribe 'Ninguno' si no toma medicamentos"
-              />
-            </div>
-            <div className="flex justify-between pt-2">
-              <Button type="button" variant="outline" onClick={() => setActiveTab("personales")}>
-                ← Anterior
-              </Button>
-              <Button type="button" onClick={() => setActiveTab("representante")}>
-                Siguiente: Representante →
-              </Button>
-            </div>
-          </TabsContent>
+          ) : null}
+          <div className="flex justify-end pt-2">
+            <Button type="button" onClick={() => setActiveTab("medico")}>
+              Siguiente: Información médica →
+            </Button>
+          </div>
+        </div>
 
-          {/* ===== TAB 3: REPRESENTANTE ===== */}
-          <TabsContent forceMount value="representante" className="space-y-4 pt-4 data-[state=inactive]:hidden">
-            <p className="text-xs text-muted-foreground">
-              Datos de la persona responsable del estudiante (padre, madre o tutor).
-            </p>
+        {/* ===== TAB 2: INFORMACIÓN MÉDICA ===== */}
+        <div className={activeTab === "medico" ? "space-y-4" : "hidden"}>
+          <p className="text-xs text-muted-foreground">
+            Esta información es necesaria para la seguridad del estudiante durante los entrenamientos.
+          </p>
+          <div className="space-y-2">
+            <Label htmlFor="bloodType">Tipo de sangre *</Label>
+            <Select name="bloodType">
+              <SelectTrigger id="bloodType">
+                <SelectValue placeholder="Selecciona el tipo de sangre" />
+              </SelectTrigger>
+              <SelectContent>
+                {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((t) => (
+                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="allergies">Alergias *</Label>
+            <Textarea
+              id="allergies"
+              name="allergies"
+              required
+              placeholder="Escribe 'Ninguna' si no tiene alergias conocidas"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="conditions">Condiciones médicas *</Label>
+            <Textarea
+              id="conditions"
+              name="conditions"
+              required
+              placeholder="Escribe 'Ninguna' si no tiene condiciones médicas"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="medications">Medicamentos que toma</Label>
+            <Textarea
+              id="medications"
+              name="medications"
+              placeholder="Escribe 'Ninguno' si no toma medicamentos"
+            />
+          </div>
+          <div className="flex justify-between pt-2">
+            <Button type="button" variant="outline" onClick={() => setActiveTab("personales")}>
+              ← Anterior
+            </Button>
+            <Button type="button" onClick={() => setActiveTab("representante")}>
+              Siguiente: Representante →
+            </Button>
+          </div>
+        </div>
+
+        {/* ===== TAB 3: REPRESENTANTE ===== */}
+        <div className={activeTab === "representante" ? "space-y-4" : "hidden"}>
+          <p className="text-xs text-muted-foreground">
+            Datos de la persona responsable del estudiante (padre, madre o tutor).
+          </p>
+          <div className="space-y-2">
+            <Label htmlFor="repFullName">Nombre completo del representante *</Label>
+            <Input id="repFullName" name="repFullName" required placeholder="Nombres y apellidos" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="repFullName">Nombre completo del representante *</Label>
-              <Input id="repFullName" name="repFullName" required placeholder="Nombres y apellidos" />
+              <Label htmlFor="repRelationship">Parentesco *</Label>
+              <Input
+                id="repRelationship"
+                name="repRelationship"
+                required
+                placeholder="Padre / Madre / Tutor"
+              />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="repRelationship">Parentesco *</Label>
-                <Input
-                  id="repRelationship"
-                  name="repRelationship"
-                  required
-                  placeholder="Padre / Madre / Tutor"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="repPhone">Teléfono / WhatsApp *</Label>
-                <Input
-                  id="repPhone"
-                  name="repPhone"
-                  type="tel"
-                  required
-                  placeholder="0991234567"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="repPhone">Teléfono / WhatsApp *</Label>
+              <Input
+                id="repPhone"
+                name="repPhone"
+                type="tel"
+                required
+                placeholder="0991234567"
+              />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="repEmail">Correo electrónico</Label>
-                <Input id="repEmail" name="repEmail" type="email" placeholder="Opcional" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="repDocumentId">Cédula del representante</Label>
-                <Input id="repDocumentId" name="repDocumentId" placeholder="Opcional" />
-              </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="repEmail">Correo electrónico</Label>
+              <Input id="repEmail" name="repEmail" type="email" placeholder="Opcional" />
             </div>
-            <div className="flex justify-between pt-2">
-              <Button type="button" variant="outline" onClick={() => setActiveTab("medico")}>
-                ← Anterior
-              </Button>
+            <div className="space-y-2">
+              <Label htmlFor="repDocumentId">Cédula del representante</Label>
+              <Input id="repDocumentId" name="repDocumentId" placeholder="Opcional" />
             </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+          <div className="flex justify-between pt-2">
+            <Button type="button" variant="outline" onClick={() => setActiveTab("medico")}>
+              ← Anterior
+            </Button>
+          </div>
+        </div>
 
         {/* Indicador de progreso */}
         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
