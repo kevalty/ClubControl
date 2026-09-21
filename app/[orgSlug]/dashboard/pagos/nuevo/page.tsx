@@ -4,10 +4,13 @@ import { RegistrarPagoForm } from "@/app/[orgSlug]/dashboard/pagos/nuevo/registr
 
 export default async function NuevoPagoPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ orgSlug: string }>;
+  searchParams: Promise<{ miembro?: string }>;
 }) {
   const { orgSlug } = await params;
+  const { miembro: preselectedMemberId } = await searchParams;
   const supabase = await createClient();
   const { data: org } = await supabase
     .from("organizations")
@@ -43,6 +46,7 @@ export default async function NuevoPagoPage({
         action={action}
         miembros={miembros ?? []}
         planes={planes ?? []}
+        preselectedMemberId={preselectedMemberId}
         membresias={(membresias ?? []).map((m) => ({
           id: m.id,
           member_id: m.member_id,

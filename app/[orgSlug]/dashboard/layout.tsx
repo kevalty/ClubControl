@@ -16,28 +16,33 @@ export default async function DashboardLayout({
 
   const { data: authUser } = await supabase.auth.getUser();
 
-  const [{ data: org }, pendingResult, inscripcionesResult, { data: notifications }] =
-    await Promise.all([
-      supabase
-        .from("organizations")
-        .select("id, name")
-        .eq("slug", orgSlug)
-        .maybeSingle(),
-      supabase
-        .from("payments")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "pending_review"),
-      supabase
-        .from("members")
-        .select("*", { count: "exact", head: true })
-        .eq("registration_status", "pending_approval"),
-      supabase
-        .from("notifications")
-        .select("id, title, body, link, read_at, created_at")
-        .eq("user_id", authUser.user?.id ?? "")
-        .order("created_at", { ascending: false })
-        .limit(20),
-    ]);
+  const [{ data: org }, pendingResult, inscripcionesResult] = await Promise.all([
+    supabase
+      .from("organizations")
+      .select("id, name")
+      .eq("slug", orgSlug)
+      .maybeSingle(),
+    supabase
+      .from("payments")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "pending_review"),
+    supabase
+      .from("members")
+      .select("*", { count: "exact", head: true })
+      .eq("registration_status", "pending_approval"),
+  ]);
+
+  // Separate query so a missing table (before migration is applied) doesn't
+  // break the entire layout Promise.all.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: notifications } = await (supabase as any)
+    .from("notifications")
+    .select("id, title, body, link, read_at, created_at")
+    .eq("user_id", authUser.user?.id ?? "")
+    .order("created_at", { ascending: false })
+    .limit(20)
+    .then((r: { data: unknown }) => r)
+    .catch(() => ({ data: [] }));
 
   if (!org) notFound();
 

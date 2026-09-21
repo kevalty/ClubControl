@@ -9,6 +9,7 @@ import {
   PAYMENT_STATUS_LABELS,
 } from "@/lib/validations/payment";
 import { MiembroAcciones } from "@/app/[orgSlug]/dashboard/miembros/[memberId]/miembro-acciones";
+import { AprobarRechazarButtons } from "@/app/[orgSlug]/dashboard/inscripciones/aprobar-rechazar-buttons";
 import { QrCodeCard } from "@/app/[orgSlug]/dashboard/miembros/[memberId]/qr-code-card";
 
 export default async function MiembroDetallePage({
@@ -22,7 +23,7 @@ export default async function MiembroDetallePage({
   const { data: member } = await supabase
     .from("members")
     .select(
-      "id, organization_id, full_name, email, phone, document_id, birth_date, status, join_date, user_id, school, grade, notes, qr_code, location_id, fee_type_id"
+      "id, organization_id, full_name, email, phone, document_id, birth_date, status, registration_status, join_date, user_id, school, grade, notes, qr_code, location_id, fee_type_id"
     )
     .eq("id", memberId)
     .maybeSingle();
@@ -140,6 +141,21 @@ export default async function MiembroDetallePage({
           />
         </div>
       </div>
+
+      {/* ===== BANNER INSCRIPCIÓN PENDIENTE ===== */}
+      {(member as { registration_status?: string }).registration_status === "pending_approval" ? (
+        <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4">
+          <p className="text-sm font-medium text-yellow-400 mb-3">
+            ⏳ Inscripción pendiente de aprobación
+          </p>
+          <p className="text-xs text-muted-foreground mb-3">
+            Revisa los datos del miembro y aprueba o rechaza la solicitud para activar su acceso.
+          </p>
+          <div className="flex gap-2">
+            <AprobarRechazarButtons orgSlug={orgSlug} memberId={memberId} />
+          </div>
+        </div>
+      ) : null}
 
       {/* ===== DATOS PERSONALES ===== */}
       <Card>
@@ -319,17 +335,14 @@ export default async function MiembroDetallePage({
             </ul>
           )}
           {!tieneMembresiaActiva ? (
-            <p className="mt-2 text-xs text-muted-foreground">
-              Sin membresía activa.{" "}
+            <div className="mt-3 flex flex-wrap gap-2">
               <LinkButton
-                href={`/${orgSlug}/dashboard/pagos/nuevo`}
-                variant="link"
-                className="h-auto p-0"
+                href={`/${orgSlug}/dashboard/pagos/nuevo?miembro=${memberId}`}
+                size="sm"
               >
-                Registrar un pago
-              </LinkButton>{" "}
-              le crea una al aprobarse.
-            </p>
+                + Registrar pago / membresía
+              </LinkButton>
+            </div>
           ) : null}
         </CardContent>
       </Card>

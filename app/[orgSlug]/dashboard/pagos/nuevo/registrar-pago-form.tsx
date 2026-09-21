@@ -29,6 +29,7 @@ export function RegistrarPagoForm({
   miembros,
   planes,
   membresias,
+  preselectedMemberId,
 }: {
   action: (
     prevState: { error?: string } | undefined,
@@ -37,9 +38,10 @@ export function RegistrarPagoForm({
   miembros: Miembro[];
   planes: Plan[];
   membresias: Membresia[];
+  preselectedMemberId?: string;
 }) {
   const [state, formAction, pending] = useActionState(action, undefined);
-  const [memberId, setMemberId] = useState<string>("");
+  const [memberId, setMemberId] = useState<string>(preselectedMemberId ?? "");
   const [modo, setModo] = useState<"renovar" | "nuevo">("nuevo");
   const [planId, setPlanId] = useState<string>("");
   const [membershipId, setMembershipId] = useState<string>("");
