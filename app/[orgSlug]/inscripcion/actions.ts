@@ -29,14 +29,13 @@ export async function submitInscripcion(
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
   const raw = Object.fromEntries(formData.entries());
-  console.log("[inscripcion] raw fields:", Object.keys(raw).join(", "));
-  console.log("[inscripcion] bloodType:", raw.bloodType, "| allergies:", raw.allergies, "| repFullName:", raw.repFullName);
 
   const parsed = InscripcionSchema.safeParse(raw);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos." };
 
   const d = parsed.data;
-  const supabase = createServiceClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = createServiceClient() as any;
 
   const { data: member, error: memberError } = await supabase
     .from("members")
@@ -60,8 +59,6 @@ export async function submitInscripcion(
     console.error("[inscripcion] memberError:", memberError);
     return { error: "Error al guardar la solicitud. Intenta de nuevo." };
   }
-
-  console.log("[inscripcion] member created:", member.id);
 
   const { error: medError } = await supabase.from("member_medical_info").insert({
     member_id: member.id,
@@ -97,12 +94,15 @@ export async function submitInscripcion(
     .eq("status", "active");
 
   if (admins?.length) {
+    const memberLink = `/${orgSlug}/dashboard/miembros/${member.id}`;
     await supabase.from("notifications").insert(
-      admins.map((a) => ({
+      admins.map((a: { user_id: string }) => ({
         organization_id: orgId,
         user_id: a.user_id,
+        member_id: member.id,
         title: "Nueva solicitud de inscripción",
         body: `${d.fullName} completó el formulario de inscripción y está pendiente de aprobación.`,
+        link: memberLink,
       }))
     );
   }

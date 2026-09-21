@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/auth/actions";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
+import { NotificationBell } from "@/components/dashboard/notification-bell";
 
 export default async function DashboardLayout({
   children,
@@ -15,21 +16,28 @@ export default async function DashboardLayout({
 
   const { data: authUser } = await supabase.auth.getUser();
 
-  const [{ data: org }, pendingResult, inscripcionesResult] = await Promise.all([
-    supabase
-      .from("organizations")
-      .select("id, name")
-      .eq("slug", orgSlug)
-      .maybeSingle(),
-    supabase
-      .from("payments")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "pending_review"),
-    supabase
-      .from("members")
-      .select("*", { count: "exact", head: true })
-      .eq("registration_status", "pending_approval"),
-  ]);
+  const [{ data: org }, pendingResult, inscripcionesResult, { data: notifications }] =
+    await Promise.all([
+      supabase
+        .from("organizations")
+        .select("id, name")
+        .eq("slug", orgSlug)
+        .maybeSingle(),
+      supabase
+        .from("payments")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending_review"),
+      supabase
+        .from("members")
+        .select("*", { count: "exact", head: true })
+        .eq("registration_status", "pending_approval"),
+      supabase
+        .from("notifications")
+        .select("id, title, body, link, read_at, created_at")
+        .eq("user_id", authUser.user?.id ?? "")
+        .order("created_at", { ascending: false })
+        .limit(20),
+    ]);
 
   if (!org) notFound();
 
@@ -53,7 +61,18 @@ export default async function DashboardLayout({
         pendingInscripciones={pendingInscripciones}
         userRole={userRole}
       />
-      <main className="flex-1 overflow-y-auto p-4 md:p-8">{children}</main>
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Top bar with notification bell */}
+        <div className="flex items-center justify-end gap-2 border-b border-[#1a1a2e] bg-[#08080f] px-4 py-2">
+          <NotificationBell
+            initialNotifications={
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (notifications ?? []) as any
+            }
+          />
+        </div>
+        <main className="flex-1 overflow-y-auto p-4 md:p-8">{children}</main>
+      </div>
     </div>
   );
 }
