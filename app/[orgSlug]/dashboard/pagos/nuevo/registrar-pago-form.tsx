@@ -12,8 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PAYMENT_METHOD_LABELS } from "@/lib/validations/payment";
 
-type Miembro = { id: string; full_name: string };
+type Rubro = { id: string; name: string; discount_percent: number };
+type Miembro = { id: string; full_name: string; rubro: Rubro | null };
 type Plan = { id: string; name: string; price: number };
 type Membresia = {
   id: string;
@@ -47,24 +49,33 @@ export function RegistrarPagoForm({
   const [membershipId, setMembershipId] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
 
+  const miembroSeleccionado = useMemo(
+    () => miembros.find((m) => m.id === memberId) ?? null,
+    [miembros, memberId]
+  );
+
   const membresiasDelMiembro = useMemo(
     () => membresias.filter((m) => m.member_id === memberId),
     [membresias, memberId]
   );
 
+  function applyDiscount(basePrice: number): string {
+    const pct = miembroSeleccionado?.rubro?.discount_percent ?? 0;
+    return (basePrice * (1 - pct / 100)).toFixed(2);
+  }
+
   function handlePlanChange(value: string | null) {
     if (!value) return;
     setPlanId(value);
     const plan = planes.find((p) => p.id === value);
-    if (plan) setAmount(Number(plan.price).toFixed(2));
+    if (plan) setAmount(applyDiscount(Number(plan.price)));
   }
 
-  // Auto-select first membership and auto-fill amount when switching to "renovar" mode
   useEffect(() => {
     if (modo === "renovar" && membresiasDelMiembro.length > 0 && !membershipId) {
       const first = membresiasDelMiembro[0];
       setMembershipId(first.id);
-      if (first.plan_price != null) setAmount(Number(first.plan_price).toFixed(2));
+      if (first.plan_price != null) setAmount(applyDiscount(Number(first.plan_price)));
     }
   }, [modo, memberId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -72,7 +83,7 @@ export function RegistrarPagoForm({
     if (!value) return;
     setMembershipId(value);
     const mem = membresiasDelMiembro.find((m) => m.id === value);
-    if (mem?.plan_price != null) setAmount(Number(mem.plan_price).toFixed(2));
+    if (mem?.plan_price != null) setAmount(applyDiscount(Number(mem.plan_price)));
   }
 
   function handleModoChange(nuevoModo: "renovar" | "nuevo") {
@@ -91,7 +102,7 @@ export function RegistrarPagoForm({
       ) : null}
 
       <div className="space-y-2">
-        <Label htmlFor="memberId">Miembro</Label>
+        <Label htmlFor="memberId">Estudiante / Miembro</Label>
         <Select
           name="memberId"
           value={memberId}
@@ -109,11 +120,25 @@ export function RegistrarPagoForm({
             {miembros.map((m) => (
               <SelectItem key={m.id} value={m.id}>
                 {m.full_name}
+                {m.rubro ? ` (${m.rubro.name})` : ""}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
+
+      {/* Mostrar rubro del miembro seleccionado */}
+      {miembroSeleccionado?.rubro ? (
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm">
+          <span className="font-medium text-amber-400">Rubro: </span>
+          <span className="text-amber-300">
+            {miembroSeleccionado.rubro.name}
+            {miembroSeleccionado.rubro.discount_percent > 0
+              ? ` — ${miembroSeleccionado.rubro.discount_percent}% de descuento`
+              : ""}
+          </span>
+        </div>
+      ) : null}
 
       {memberId ? (
         <div className="space-y-2">
@@ -126,7 +151,7 @@ export function RegistrarPagoForm({
                 onChange={() => handleModoChange("renovar")}
                 disabled={membresiasDelMiembro.length === 0}
               />
-              Renovación de una membresía existente
+              Renovación de membresía existente
             </label>
             <label className="flex items-center gap-2">
               <input
@@ -189,17 +214,24 @@ export function RegistrarPagoForm({
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
           />
+          {miembroSeleccionado?.rubro?.discount_percent ? (
+            <p className="text-xs text-muted-foreground">
+              Precio con descuento de {miembroSeleccionado.rubro.discount_percent}% ya aplicado.
+            </p>
+          ) : null}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="method">Método</Label>
+          <Label htmlFor="method">Método de pago</Label>
           <Select name="method" defaultValue="bank_transfer">
             <SelectTrigger id="method" className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="bank_transfer">Transferencia bancaria</SelectItem>
-              <SelectItem value="cash">Efectivo</SelectItem>
-              <SelectItem value="other">Otro</SelectItem>
+              {Object.entries(PAYMENT_METHOD_LABELS).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

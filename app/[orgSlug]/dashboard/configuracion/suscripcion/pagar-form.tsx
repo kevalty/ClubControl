@@ -28,6 +28,9 @@ export function PagarSuscripcionForm({
   planActualId?: string;
 }) {
   const [state, formAction, pending] = useActionState(action, undefined);
+  // Solo usar defaultValue si el plan actual está en la lista disponible
+  const planEnLista = planes.some((p) => p.id === planActualId);
+  const defaultPlanId = planEnLista ? planActualId : undefined;
 
   if (state?.ok) {
     return (
@@ -48,7 +51,7 @@ export function PagarSuscripcionForm({
       ) : null}
       <div className="space-y-2">
         <Label htmlFor="planId">Plan</Label>
-        <Select name="planId" defaultValue={planActualId}>
+        <Select name="planId" defaultValue={defaultPlanId}>
           <SelectTrigger id="planId" className="w-full">
             <SelectValue placeholder="Selecciona un plan" />
           </SelectTrigger>

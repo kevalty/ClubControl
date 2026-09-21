@@ -18,24 +18,46 @@ export default async function NuevoPagoPage({
     .eq("slug", orgSlug)
     .single();
 
-  const [{ data: miembros }, { data: planes }, { data: membresias }] = await Promise.all([
-    supabase
-      .from("members")
-      .select("id, full_name")
-      .eq("organization_id", org!.id)
-      .order("full_name"),
-    supabase
-      .from("membership_plans")
-      .select("id, name, price")
-      .eq("organization_id", org!.id)
-      .eq("is_active", true)
-      .order("name"),
-    supabase
-      .from("memberships")
-      .select("id, member_id, end_date, status, membership_plans(name, price)")
-      .eq("organization_id", org!.id)
-      .in("status", ["active", "frozen"]),
-  ]);
+  const [{ data: miembrosRaw }, { data: planes }, { data: membresias }, { data: rubros }] =
+    await Promise.all([
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any)
+        .from("members")
+        .select("id, full_name, fee_type_id")
+        .eq("organization_id", org!.id)
+        .order("full_name"),
+      supabase
+        .from("membership_plans")
+        .select("id, name, price")
+        .eq("organization_id", org!.id)
+        .eq("is_active", true)
+        .order("name"),
+      supabase
+        .from("memberships")
+        .select("id, member_id, end_date, status, membership_plans(name, price)")
+        .eq("organization_id", org!.id)
+        .in("status", ["active", "frozen"]),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any)
+        .from("fee_types")
+        .select("id, name, discount_percent")
+        .eq("organization_id", org!.id)
+        .eq("is_active", true),
+    ]);
+
+  const rubroMap = new Map(
+    ((rubros ?? []) as Array<{ id: string; name: string; discount_percent: number }>).map(
+      (r) => [r.id, r]
+    )
+  );
+
+  const miembros = (
+    (miembrosRaw ?? []) as Array<{ id: string; full_name: string; fee_type_id: string | null }>
+  ).map((m) => ({
+    id: m.id,
+    full_name: m.full_name,
+    rubro: m.fee_type_id ? rubroMap.get(m.fee_type_id) ?? null : null,
+  }));
 
   const action = registrarPago.bind(null, orgSlug, org!.id);
 
@@ -44,7 +66,7 @@ export default async function NuevoPagoPage({
       <h1 className="text-2xl font-semibold">Registrar pago</h1>
       <RegistrarPagoForm
         action={action}
-        miembros={miembros ?? []}
+        miembros={miembros}
         planes={planes ?? []}
         preselectedMemberId={preselectedMemberId}
         membresias={(membresias ?? []).map((m) => ({
@@ -53,9 +75,11 @@ export default async function NuevoPagoPage({
           end_date: m.end_date,
           status: m.status,
           plan_name:
-            (m.membership_plans as unknown as { name: string; price: number } | null)?.name ?? "Plan",
+            (m.membership_plans as unknown as { name: string; price: number } | null)?.name ??
+            "Plan",
           plan_price:
-            (m.membership_plans as unknown as { name: string; price: number } | null)?.price ?? null,
+            (m.membership_plans as unknown as { name: string; price: number } | null)?.price ??
+            null,
         }))}
       />
     </div>
