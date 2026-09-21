@@ -40,11 +40,22 @@ export default async function MiembrosPage({
   const { q, estado } = await searchParams;
   const supabase = await createClient();
 
+  const { data: authUser } = await supabase.auth.getUser();
+
   const { data: org } = await supabase
     .from("organizations")
     .select("id")
     .eq("slug", orgSlug)
     .single();
+
+  const { data: myMembership } = await supabase
+    .from("organization_members")
+    .select("role")
+    .eq("organization_id", org!.id)
+    .eq("user_id", authUser.user?.id ?? "")
+    .maybeSingle();
+
+  const canEdit = myMembership?.role !== "trainer";
 
   let query = supabase
     .from("members")
@@ -77,9 +88,11 @@ export default async function MiembrosPage({
           >
             Exportar CSV
           </LinkButton>
-          <LinkButton href={`/${orgSlug}/dashboard/miembros/nuevo`}>
-            Nuevo miembro
-          </LinkButton>
+          {canEdit ? (
+            <LinkButton href={`/${orgSlug}/dashboard/miembros/nuevo`}>
+              Nuevo miembro
+            </LinkButton>
+          ) : null}
         </div>
       </div>
 
@@ -121,12 +134,14 @@ export default async function MiembrosPage({
           ) : (
             <>
               <p>Aún no tienes miembros registrados.</p>
-              <LinkButton
-                href={`/${orgSlug}/dashboard/miembros/nuevo`}
-                variant="link"
-              >
-                Crea el primero
-              </LinkButton>
+              {canEdit ? (
+                <LinkButton
+                  href={`/${orgSlug}/dashboard/miembros/nuevo`}
+                  variant="link"
+                >
+                  Crea el primero
+                </LinkButton>
+              ) : null}
             </>
           )}
         </div>

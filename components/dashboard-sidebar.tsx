@@ -116,6 +116,13 @@ function buildTrainerGroups(orgSlug: string): NavGroup[] {
         { href: `/${orgSlug}/dashboard/asistencia`, label: "Asistencia", icon: QrCode },
       ],
     },
+    {
+      label: "Consulta",
+      items: [
+        { href: `/${orgSlug}/dashboard/miembros`, label: "Miembros", icon: Users },
+        { href: `/${orgSlug}/dashboard/equipo`, label: "Equipo", icon: UserPlus },
+      ],
+    },
   ];
 }
 
