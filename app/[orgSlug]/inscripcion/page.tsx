@@ -13,7 +13,8 @@ export default async function InscripcionPage({
   const { para } = await searchParams;
   const studentName = para ? decodeURIComponent(para) : "";
   // Use service client: this is a public route with no auth session
-  const supabase = createServiceClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = createServiceClient() as any;
 
   const { data: org } = await supabase
     .from("organizations")
