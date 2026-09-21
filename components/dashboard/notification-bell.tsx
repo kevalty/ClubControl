@@ -76,7 +76,7 @@ export function NotificationBell({
             onClick={() => setOpen(false)}
           />
           {/* Dropdown */}
-          <div className="absolute right-0 top-10 z-50 w-80 rounded-xl border border-[#1a1a2e] bg-[#0d0d1a] shadow-xl">
+          <div className="absolute right-0 top-10 z-50 w-96 rounded-xl border border-[#1a1a2e] bg-[#0d0d1a] shadow-xl">
             <div className="flex items-center justify-between border-b border-[#1a1a2e] px-4 py-3">
               <span className="text-sm font-semibold text-white">
                 Notificaciones
