@@ -75,8 +75,8 @@ export function NotificationBell({
             className="fixed inset-0 z-40"
             onClick={() => setOpen(false)}
           />
-          {/* Dropdown — fixed so parent overflow:hidden doesn't clip it */}
-          <div className="fixed right-4 top-12 z-50 w-80 rounded-xl border border-[#1a1a2e] bg-[#0d0d1a] shadow-xl">
+          {/* Dropdown */}
+          <div className="absolute right-0 top-10 z-50 w-80 rounded-xl border border-[#1a1a2e] bg-[#0d0d1a] shadow-xl">
             <div className="flex items-center justify-between border-b border-[#1a1a2e] px-4 py-3">
               <span className="text-sm font-semibold text-white">
                 Notificaciones

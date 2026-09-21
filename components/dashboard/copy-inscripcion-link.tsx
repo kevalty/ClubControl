@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+// v2 — WhatsApp send
 export function CopyInscripcionLink({ orgSlug }: { orgSlug: string }) {
   const [origin, setOrigin] = useState("");
   const [copiedGeneral, setCopiedGeneral] = useState(false);

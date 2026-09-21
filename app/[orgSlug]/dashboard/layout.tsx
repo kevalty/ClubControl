@@ -66,7 +66,7 @@ export default async function DashboardLayout({
         pendingInscripciones={pendingInscripciones}
         userRole={userRole}
       />
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col min-h-0">
         {/* Top bar with notification bell */}
         <div className="flex items-center justify-end gap-2 border-b border-[#1a1a2e] bg-[#08080f] px-4 py-2">
           <NotificationBell
