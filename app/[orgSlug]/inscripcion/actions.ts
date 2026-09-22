@@ -3,6 +3,26 @@
 import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/service";
 
+async function uploadDoc(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  memberId: string,
+  orgId: string,
+  file: File,
+  slot: string
+): Promise<string | null> {
+  const ext = file.name.split(".").pop() ?? "bin";
+  const path = `${orgId}/${memberId}/${slot}.${ext}`;
+  const { error } = await supabase.storage
+    .from("member-documents")
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (error) {
+    console.error("[inscripcion] upload error:", error);
+    return null;
+  }
+  return path;
+}
+
 const InscripcionSchema = z.object({
   fullName: z.string({ required_error: "Nombre requerido" }).min(2, "Nombre requerido"),
   birthDate: z.string({ required_error: "Fecha de nacimiento requerida" }).min(1, "Fecha de nacimiento requerida"),
@@ -28,6 +48,18 @@ export async function submitInscripcion(
   _prev: { error?: string; success?: boolean } | undefined,
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
+  // Extract files before Zod parse (Zod cannot handle File objects)
+  const cedulaEstudianteFile = formData.get("cedulaEstudiante") as File | null;
+  const cedulaRepresentanteFile = formData.get("cedulaRepresentante") as File | null;
+  const fotoEstudianteFile = formData.get("fotoEstudiante") as File | null;
+
+  if (!cedulaEstudianteFile || cedulaEstudianteFile.size === 0)
+    return { error: "La cédula del estudiante es obligatoria (tab Documentos)." };
+  if (!cedulaRepresentanteFile || cedulaRepresentanteFile.size === 0)
+    return { error: "La cédula del representante es obligatoria (tab Documentos)." };
+  if (!fotoEstudianteFile || fotoEstudianteFile.size === 0)
+    return { error: "La foto del estudiante es obligatoria (tab Documentos)." };
+
   const raw = Object.fromEntries(formData.entries());
 
   const parsed = InscripcionSchema.safeParse(raw);
@@ -60,6 +92,20 @@ export async function submitInscripcion(
     return { error: "Error al guardar la solicitud. Intenta de nuevo." };
   }
 
+  // Upload documents (non-fatal if bucket doesn't exist yet)
+  const [cedulaEstudiantePath, fotoPath] = await Promise.all([
+    uploadDoc(supabase, member.id, orgId, cedulaEstudianteFile, "cedula_estudiante"),
+    uploadDoc(supabase, member.id, orgId, fotoEstudianteFile, "foto"),
+  ]);
+  const cedulaRepPath = await uploadDoc(supabase, member.id, orgId, cedulaRepresentanteFile, "cedula_rep");
+
+  if (cedulaEstudiantePath || fotoPath) {
+    await supabase.from("members").update({
+      ...(cedulaEstudiantePath ? { cedula_url: cedulaEstudiantePath } : {}),
+      ...(fotoPath ? { photo_url: fotoPath } : {}),
+    }).eq("id", member.id);
+  }
+
   const { error: medError } = await supabase.from("member_medical_info").insert({
     member_id: member.id,
     blood_type: d.bloodType,
@@ -79,6 +125,7 @@ export async function submitInscripcion(
     phone: d.repPhone,
     email: d.repEmail || null,
     document_id: d.repDocumentId || null,
+    cedula_url: cedulaRepPath,
     is_primary: true,
   });
   if (repError) {

@@ -19,16 +19,24 @@ import { submitInscripcion } from "./actions";
 type Location = { id: string; name: string };
 type FeeType = { id: string; name: string; discount_percent: number };
 
-type Tab = "personales" | "medico" | "representante";
+type Tab = "personales" | "medico" | "representante" | "documentos";
 
-const TABS: Tab[] = ["personales", "medico", "representante"];
+const TABS: Tab[] = ["personales", "medico", "representante", "documentos"];
 const TAB_LABELS: Record<Tab, string> = {
   personales: "Datos del estudiante",
   medico: "Información médica",
   representante: "Representante",
+  documentos: "Documentos",
 };
 
 function getErrorTab(error: string): Tab {
+  if (
+    error.includes("édula") ||
+    error.includes("oto") ||
+    error.includes("ocumento") ||
+    error.includes("arnet")
+  )
+    return "documentos";
   if (
     error.includes("médica") ||
     error.includes("sangre") ||
@@ -63,6 +71,9 @@ type FormVals = {
   repPhone: string;
   repEmail: string;
   repDocumentId: string;
+  cedulaEstudianteFile: File | null;
+  cedulaRepresentanteFile: File | null;
+  fotoEstudianteFile: File | null;
 };
 
 export function InscripcionForm({
@@ -101,6 +112,9 @@ export function InscripcionForm({
     repPhone: "",
     repEmail: "",
     repDocumentId: "",
+    cedulaEstudianteFile: null,
+    cedulaRepresentanteFile: null,
+    fotoEstudianteFile: null,
   });
 
   const set =
@@ -141,6 +155,7 @@ export function InscripcionForm({
     <div className="rounded-lg border bg-card p-6">
       <form
         action={formAction}
+        encType="multipart/form-data"
         className="space-y-5"
         suppressHydrationWarning
         onSubmit={() => {
@@ -173,7 +188,7 @@ export function InscripcionForm({
 
         {/* Tab navigation bar — visual only, content panels are plain divs below */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as Tab)}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             {TABS.map((tab) => (
               <TabsTrigger
                 key={tab}
@@ -450,6 +465,69 @@ export function InscripcionForm({
               variant="outline"
               onClick={() => setActiveTab("medico")}
             >
+              ← Anterior
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setActiveTab("documentos")}
+            >
+              Siguiente: Documentos →
+            </Button>
+          </div>
+        </div>
+
+        {/* ===== TAB 4: DOCUMENTOS ===== */}
+        <div className={activeTab === "documentos" ? "space-y-4" : "hidden"}>
+          <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-400">
+            Los tres documentos son obligatorios para completar la inscripción.
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="cedulaEstudiante">
+              Cédula del estudiante <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="cedulaEstudiante"
+              name="cedulaEstudiante"
+              type="file"
+              accept="image/*,application/pdf"
+              onChange={(e) =>
+                setVals((p) => ({ ...p, cedulaEstudianteFile: e.target.files?.[0] ?? null }))
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="cedulaRepresentante">
+              Cédula del representante <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="cedulaRepresentante"
+              name="cedulaRepresentante"
+              type="file"
+              accept="image/*,application/pdf"
+              onChange={(e) =>
+                setVals((p) => ({ ...p, cedulaRepresentanteFile: e.target.files?.[0] ?? null }))
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="fotoEstudiante">
+              Foto del estudiante con fondo blanco <span className="text-destructive">*</span>
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Esta foto aparecerá en el carnet del estudiante. Fondo blanco, rostro visible.
+            </p>
+            <Input
+              id="fotoEstudiante"
+              name="fotoEstudiante"
+              type="file"
+              accept="image/*"
+              onChange={(e) =>
+                setVals((p) => ({ ...p, fotoEstudianteFile: e.target.files?.[0] ?? null }))
+              }
+            />
+          </div>
+          <div className="flex justify-between pt-2">
+            <Button type="button" variant="outline" onClick={() => setActiveTab("representante")}>
               ← Anterior
             </Button>
           </div>
