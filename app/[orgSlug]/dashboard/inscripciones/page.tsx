@@ -18,23 +18,50 @@ export default async function InscripcionesPage({
     .maybeSingle();
   if (!org) notFound();
 
-  const { data: pending } = await supabase
-    .from("members")
-    .select(
-      "id, full_name, birth_date, school, grade, created_at, registration_status"
-    )
-    .eq("organization_id", org.id)
-    .eq("registration_status", "pending_approval")
-    .order("created_at", { ascending: false });
+  const [
+    { data: pendingMembers },
+    { data: feeTypes },
+    { data: locations },
+    { data: clases },
+  ] = await Promise.all([
+    supabase
+      .from("members")
+      .select(
+        "id, full_name, birth_date, school, grade, created_at, registration_status"
+      )
+      .eq("organization_id", org.id)
+      .eq("registration_status", "pending_approval")
+      .order("created_at", { ascending: false }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
+      .from("fee_types")
+      .select("id, name")
+      .eq("organization_id", org.id)
+      .eq("is_active", true)
+      .order("name"),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
+      .from("locations")
+      .select("id, name")
+      .eq("organization_id", org.id)
+      .eq("is_active", true)
+      .order("name"),
+    supabase
+      .from("classes")
+      .select("id, name")
+      .eq("organization_id", org.id)
+      .eq("is_active", true)
+      .order("name"),
+  ]);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">
           Solicitudes de inscripción
-          {pending?.length ? (
+          {pendingMembers?.length ? (
             <span className="ml-2 text-base font-normal text-muted-foreground">
-              ({pending.length} pendiente{pending.length !== 1 ? "s" : ""})
+              ({pendingMembers.length} pendiente{pendingMembers.length !== 1 ? "s" : ""})
             </span>
           ) : null}
         </h1>
@@ -48,13 +75,13 @@ export default async function InscripcionesPage({
         </LinkButton>
       </div>
 
-      {!pending?.length ? (
+      {!pendingMembers?.length ? (
         <p className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
           No hay solicitudes pendientes de revisión.
         </p>
       ) : (
         <div className="divide-y rounded-lg border">
-          {pending.map((m) => (
+          {pendingMembers.map((m) => (
             <div
               key={m.id}
               className="flex flex-wrap items-center justify-between gap-4 p-4"
@@ -81,7 +108,13 @@ export default async function InscripcionesPage({
                 >
                   Ver ficha
                 </LinkButton>
-                <AprobarRechazarButtons orgSlug={orgSlug} memberId={m.id} />
+                <AprobarRechazarButtons
+                  orgSlug={orgSlug}
+                  memberId={m.id}
+                  feeTypes={feeTypes ?? []}
+                  locations={locations ?? []}
+                  clases={clases ?? []}
+                />
               </div>
             </div>
           ))}

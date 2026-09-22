@@ -5,7 +5,10 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function aprobarInscripcion(
   orgSlug: string,
-  memberId: string
+  memberId: string,
+  feeTypeId: string | null,
+  locationId: string | null,
+  classId: string | null
 ): Promise<{ error?: string }> {
   const supabase = await createClient();
 
@@ -16,13 +19,32 @@ export async function aprobarInscripcion(
     .maybeSingle();
   if (!org) return { error: "Organización no encontrada." };
 
+  const updates: Record<string, unknown> = {
+    registration_status: "approved",
+    status: "active",
+  };
+  if (feeTypeId) updates.fee_type_id = feeTypeId;
+  if (locationId) updates.location_id = locationId;
+
   const { error } = await supabase
     .from("members")
-    .update({ registration_status: "approved", status: "active" })
+    .update(updates)
     .eq("id", memberId)
-    .eq("organization_id", org.id);
+    .eq("organization_id", org.id as string);
   if (error) return { error: "No se pudo aprobar la inscripción." };
+
+  if (classId) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from("class_enrollments").insert({
+      organization_id: org.id,
+      class_id: classId,
+      member_id: memberId,
+      status: "active",
+    });
+  }
+
   revalidatePath(`/${orgSlug}/dashboard/inscripciones`);
+  revalidatePath(`/${orgSlug}/dashboard/miembros/${memberId}`);
   return {};
 }
 

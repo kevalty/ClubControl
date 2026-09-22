@@ -51,6 +51,9 @@ export default async function MiembroDetallePage({
     { data: representatives },
     { data: locationData },
     { data: feeTypeData },
+    feeTypesListResult,
+    locationsListResult,
+    classesListResult,
   ] = await Promise.all([
     supabase
       .from("memberships")
@@ -87,6 +90,32 @@ export default async function MiembroDetallePage({
           .select("name, discount_percent")
           .eq("id", member.fee_type_id)
           .maybeSingle()
+      : Promise.resolve({ data: null }),
+    (member as { registration_status?: string }).registration_status === "pending_approval"
+      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (supabase as any)
+          .from("fee_types")
+          .select("id, name")
+          .eq("organization_id", member.organization_id)
+          .eq("is_active", true)
+          .order("name")
+      : Promise.resolve({ data: null }),
+    (member as { registration_status?: string }).registration_status === "pending_approval"
+      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (supabase as any)
+          .from("locations")
+          .select("id, name")
+          .eq("organization_id", member.organization_id)
+          .eq("is_active", true)
+          .order("name")
+      : Promise.resolve({ data: null }),
+    (member as { registration_status?: string }).registration_status === "pending_approval"
+      ? supabase
+          .from("classes")
+          .select("id, name")
+          .eq("organization_id", member.organization_id)
+          .eq("is_active", true)
+          .order("name")
       : Promise.resolve({ data: null }),
   ]);
 
@@ -152,7 +181,13 @@ export default async function MiembroDetallePage({
             Revisa los datos del miembro y aprueba o rechaza la solicitud para activar su acceso.
           </p>
           <div className="flex gap-2">
-            <AprobarRechazarButtons orgSlug={orgSlug} memberId={memberId} />
+            <AprobarRechazarButtons
+              orgSlug={orgSlug}
+              memberId={memberId}
+              feeTypes={feeTypesListResult?.data ?? []}
+              locations={locationsListResult?.data ?? []}
+              clases={classesListResult?.data ?? []}
+            />
           </div>
         </div>
       ) : null}
