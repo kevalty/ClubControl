@@ -24,13 +24,25 @@ type Factura = {
 
 export function PrintFactura({ org, factura }: { org: Org; factura: Factura }) {
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-2xl space-y-4">
+      <style>{`
+        @media print {
+          body { background: white !important; }
+          #factura-content { background: white !important; color: black !important; }
+          .print\\:hidden { display: none !important; }
+        }
+      `}</style>
       <div className="flex gap-2 print:hidden">
         <Button onClick={() => window.print()}>Imprimir / Guardar PDF</Button>
       </div>
       <div
-        className="rounded-lg border bg-white p-8 text-sm print:border-none"
+        className="rounded-lg border bg-white p-8 text-sm print:border-none print:p-0 print:shadow-none"
         id="factura-content"
+        style={{
+          WebkitPrintColorAdjust: "exact",
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          printColorAdjust: "exact" as any,
+        }}
       >
         <div className="mb-4 rounded bg-amber-50 border border-amber-200 p-2 text-center text-xs text-amber-700 print:hidden">
           SIMULADOR — Esta factura no tiene validez ante el SRI del Ecuador
@@ -42,10 +54,10 @@ export function PrintFactura({ org, factura }: { org: Org; factura: Factura }) {
             ) : null}
             <p className="font-bold text-lg">{org.name}</p>
             {org.address ? (
-              <p className="text-muted-foreground">{org.address}</p>
+              <p className="text-gray-500">{org.address}</p>
             ) : null}
             {org.email ? (
-              <p className="text-muted-foreground">{org.email}</p>
+              <p className="text-gray-500">{org.email}</p>
             ) : null}
           </div>
           <div className="text-right">

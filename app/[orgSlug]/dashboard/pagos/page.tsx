@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { LinkButton } from "@/components/ui/link-button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -35,10 +36,10 @@ export default async function PagosPage({
   searchParams,
 }: {
   params: Promise<{ orgSlug: string }>;
-  searchParams: Promise<{ estado?: string; metodo?: string }>;
+  searchParams: Promise<{ estado?: string; metodo?: string; q?: string }>;
 }) {
   const { orgSlug } = await params;
-  const { estado, metodo } = await searchParams;
+  const { estado, metodo, q } = await searchParams;
   const supabase = await createClient();
 
   const { data: org } = await supabase
@@ -55,6 +56,16 @@ export default async function PagosPage({
     members: { full_name: string } | null;
   };
 
+  let memberIdFilter: string[] | null = null;
+  if (q) {
+    const { data: matchingMembers } = await supabase
+      .from("members")
+      .select("id")
+      .eq("organization_id", org!.id)
+      .ilike("full_name", `%${q}%`);
+    memberIdFilter = matchingMembers?.map((m) => m.id) ?? [];
+  }
+
   let query = supabase
     .from("payments")
     .select("id, amount, currency, method, status, reference_number, rejection_reason, proof_url, created_at, members(full_name)")
@@ -67,6 +78,15 @@ export default async function PagosPage({
   }
   if (metodo && metodo !== "todos") {
     query = query.eq("method", metodo);
+  }
+
+  if (memberIdFilter !== null) {
+    if (memberIdFilter.length === 0) {
+      // No matching members — force empty result
+      query = query.eq("member_id", "00000000-0000-0000-0000-000000000000");
+    } else {
+      query = query.in("member_id", memberIdFilter);
+    }
   }
 
   const { data: _pagosRaw, error } = await query;
@@ -82,6 +102,12 @@ export default async function PagosPage({
       </div>
 
       <form className="flex flex-wrap gap-3" method="get">
+        <Input
+          name="q"
+          placeholder="Buscar por nombre del miembro"
+          defaultValue={q}
+          className="max-w-xs"
+        />
         <Select name="estado" defaultValue={estadoFiltro}>
           <SelectTrigger className="w-56">
             <SelectValue />

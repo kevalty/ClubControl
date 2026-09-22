@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { LinkButton } from "@/components/ui/link-button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -14,10 +16,13 @@ import { ClaseActivaToggle } from "@/app/[orgSlug]/dashboard/clases/clase-activa
 
 export default async function ClasesPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ orgSlug: string }>;
+  searchParams: Promise<{ q?: string }>;
 }) {
   const { orgSlug } = await params;
+  const { q } = await searchParams;
   const supabase = await createClient();
   const { data: org } = await supabase
     .from("organizations")
@@ -25,11 +30,17 @@ export default async function ClasesPage({
     .eq("slug", orgSlug)
     .single();
 
-  const { data: clases, error } = await supabase
+  let clasesQuery = supabase
     .from("classes")
     .select("id, name, capacity, location, recurrence_rule, is_active")
     .eq("organization_id", org!.id)
     .order("name");
+
+  if (q) {
+    clasesQuery = clasesQuery.ilike("name", `%${q}%`);
+  }
+
+  const { data: clases, error } = await clasesQuery;
 
   const labelDias = (days: string[]) =>
     days.map((d) => WEEKDAYS.find((w) => w.value === d)?.label ?? d).join(", ");
@@ -46,14 +57,32 @@ export default async function ClasesPage({
         </div>
       </div>
 
+      <form className="flex flex-wrap gap-3" method="get">
+        <Input
+          name="q"
+          placeholder="Buscar por nombre de clase"
+          defaultValue={q}
+          className="max-w-xs"
+        />
+        <Button type="submit" variant="outline">
+          Buscar
+        </Button>
+      </form>
+
       {error ? (
         <p className="text-sm text-destructive">No se pudieron cargar las clases.</p>
       ) : !clases || clases.length === 0 ? (
         <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-          <p>Aún no tienes clases creadas.</p>
-          <LinkButton href={`/${orgSlug}/dashboard/clases/nuevo`} variant="link">
-            Crea la primera
-          </LinkButton>
+          {q ? (
+            <p>No hay clases que coincidan con la búsqueda.</p>
+          ) : (
+            <>
+              <p>Aún no tienes clases creadas.</p>
+              <LinkButton href={`/${orgSlug}/dashboard/clases/nuevo`} variant="link">
+                Crea la primera
+              </LinkButton>
+            </>
+          )}
         </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border">

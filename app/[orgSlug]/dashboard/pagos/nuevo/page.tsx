@@ -62,7 +62,7 @@ export default async function NuevoPagoPage({
   const action = registrarPago.bind(null, orgSlug, org!.id);
 
   return (
-    <div className="max-w-lg space-y-6">
+    <div className="mx-auto max-w-lg space-y-6">
       <h1 className="text-2xl font-semibold">Registrar pago</h1>
       <RegistrarPagoForm
         action={action}
