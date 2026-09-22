@@ -70,3 +70,41 @@ export async function marcarAsistenciaClase(
   revalidatePath(`/${orgSlug}/dashboard/clases/sesiones/${sessionId}`);
   return { ok: true };
 }
+
+export async function marcarAsistencia(
+  orgSlug: string,
+  sessionId: string,
+  orgId: string,
+  memberId: string,
+  estado: "attended" | "no_show" | "justified"
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+
+  const { data: existing } = await supabase
+    .from("class_bookings")
+    .select("id")
+    .eq("class_session_id", sessionId)
+    .eq("member_id", memberId)
+    .maybeSingle();
+
+  if (existing) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any)
+      .from("class_bookings")
+      .update({ status: estado })
+      .eq("id", existing.id);
+    if (error) return { error: "No se pudo actualizar la asistencia." };
+  } else {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any).from("class_bookings").insert({
+      class_session_id: sessionId,
+      organization_id: orgId,
+      member_id: memberId,
+      status: estado,
+    });
+    if (error) return { error: "No se pudo registrar la asistencia." };
+  }
+
+  revalidatePath(`/${orgSlug}/dashboard/clases/sesiones/${sessionId}`);
+  return {};
+}
