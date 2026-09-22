@@ -18,6 +18,7 @@ import {
   LogOut,
   Megaphone,
   ClipboardList,
+  Trophy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logout } from "@/app/auth/actions";
@@ -61,7 +62,8 @@ function buildGroups(
       items: [
         { href: `/${orgSlug}/dashboard/asistencia`, label: "Asistencia", icon: QrCode },
         { href: `/${orgSlug}/dashboard/clases`, label: "Clases", icon: CalendarDays },
-        { href: `/${orgSlug}/dashboard/equipo`, label: "Equipo", icon: UserPlus },
+        { href: `/${orgSlug}/dashboard/equipo`, label: "Equipos de torneo", icon: Trophy },
+        { href: `/${orgSlug}/dashboard/staff`, label: "Staff / Equipo", icon: UserPlus },
       ],
     },
     {
@@ -120,7 +122,8 @@ function buildTrainerGroups(orgSlug: string): NavGroup[] {
       label: "Consulta",
       items: [
         { href: `/${orgSlug}/dashboard/miembros`, label: "Miembros", icon: Users },
-        { href: `/${orgSlug}/dashboard/equipo`, label: "Equipo", icon: UserPlus },
+        { href: `/${orgSlug}/dashboard/equipo`, label: "Equipos de torneo", icon: Trophy },
+        { href: `/${orgSlug}/dashboard/staff`, label: "Staff / Equipo", icon: UserPlus },
       ],
     },
   ];
