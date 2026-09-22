@@ -57,11 +57,12 @@ export async function quitarMiembroEquipoTorneo(
 ): Promise<{ error?: string }> {
   const supabase = await createClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (supabase as any)
+  const { error } = await (supabase as any)
     .from("team_members")
     .delete()
     .eq("team_id", teamId)
     .eq("member_id", memberId);
+  if (error) return { error: "No se pudo remover el miembro del equipo." };
   revalidatePath(`/${orgSlug}/dashboard/equipo/${teamId}`);
   return {};
 }

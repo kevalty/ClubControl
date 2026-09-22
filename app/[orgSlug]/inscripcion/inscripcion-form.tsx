@@ -490,6 +490,7 @@ export function InscripcionForm({
               name="cedulaEstudiante"
               type="file"
               accept="image/*,application/pdf"
+              required
               onChange={(e) =>
                 setVals((p) => ({ ...p, cedulaEstudianteFile: e.target.files?.[0] ?? null }))
               }
@@ -504,6 +505,7 @@ export function InscripcionForm({
               name="cedulaRepresentante"
               type="file"
               accept="image/*,application/pdf"
+              required
               onChange={(e) =>
                 setVals((p) => ({ ...p, cedulaRepresentanteFile: e.target.files?.[0] ?? null }))
               }
@@ -521,6 +523,7 @@ export function InscripcionForm({
               name="fotoEstudiante"
               type="file"
               accept="image/*"
+              required
               onChange={(e) =>
                 setVals((p) => ({ ...p, fotoEstudianteFile: e.target.files?.[0] ?? null }))
               }

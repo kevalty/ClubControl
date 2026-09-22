@@ -35,12 +35,17 @@ export async function aprobarInscripcion(
 
   if (classId) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any).from("class_enrollments").insert({
+    const { error: enrollError } = await (supabase as any).from("class_enrollments").insert({
       organization_id: org.id,
       class_id: classId,
       member_id: memberId,
       status: "active",
     });
+    // Duplicate enrollment (23505) is acceptable — the member is already enrolled
+    if (enrollError && enrollError.code !== "23505") {
+      console.error("[aprobar] enrollError:", enrollError);
+      return { error: "Miembro aprobado pero no se pudo asignar la clase. Asígnala manualmente desde el perfil del miembro." };
+    }
   }
 
   revalidatePath(`/${orgSlug}/dashboard/inscripciones`);

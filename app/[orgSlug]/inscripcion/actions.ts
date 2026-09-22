@@ -92,19 +92,23 @@ export async function submitInscripcion(
     return { error: "Error al guardar la solicitud. Intenta de nuevo." };
   }
 
-  // Upload documents (non-fatal if bucket doesn't exist yet)
+  // Upload documents — fatal if any fails (documents are mandatory)
   const [cedulaEstudiantePath, fotoPath] = await Promise.all([
     uploadDoc(supabase, member.id, orgId, cedulaEstudianteFile, "cedula_estudiante"),
     uploadDoc(supabase, member.id, orgId, fotoEstudianteFile, "foto"),
   ]);
   const cedulaRepPath = await uploadDoc(supabase, member.id, orgId, cedulaRepresentanteFile, "cedula_rep");
 
-  if (cedulaEstudiantePath || fotoPath) {
-    await supabase.from("members").update({
-      ...(cedulaEstudiantePath ? { cedula_url: cedulaEstudiantePath } : {}),
-      ...(fotoPath ? { photo_url: fotoPath } : {}),
-    }).eq("id", member.id);
+  if (!cedulaEstudiantePath || !fotoPath || !cedulaRepPath) {
+    // Roll back: delete the member created above so the form can be retried
+    await supabase.from("members").delete().eq("id", member.id);
+    return { error: "Error al subir los documentos. Verifica que el formato sea válido (imagen o PDF) e intenta de nuevo." };
   }
+
+  await supabase.from("members").update({
+    cedula_url: cedulaEstudiantePath,
+    photo_url: fotoPath,
+  }).eq("id", member.id);
 
   const { error: medError } = await supabase.from("member_medical_info").insert({
     member_id: member.id,
