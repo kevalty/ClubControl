@@ -24,22 +24,22 @@ async function uploadDoc(
 }
 
 const InscripcionSchema = z.object({
-  fullName: z.string({ required_error: "Nombre requerido" }).min(2, "Nombre requerido"),
-  birthDate: z.string({ required_error: "Fecha de nacimiento requerida" }).min(1, "Fecha de nacimiento requerida"),
-  documentId: z.string().optional(),
-  school: z.string({ required_error: "Unidad educativa requerida" }).min(1, "Unidad educativa requerida"),
-  grade: z.string({ required_error: "Curso requerido" }).min(1, "Curso requerido"),
+  fullName: z.string().min(2, "Nombre requerido"),
+  birthDate: z.string().min(1, "Fecha de nacimiento requerida"),
+  documentId: z.string().min(5, "Cédula del estudiante requerida (tab Datos del estudiante)"),
+  school: z.string().min(1, "Unidad educativa requerida"),
+  grade: z.string().min(1, "Curso requerido"),
   locationId: z.string().uuid().optional().or(z.literal("")),
   feeTypeId: z.string().uuid().optional().or(z.literal("")),
-  bloodType: z.string({ required_error: "Selecciona el tipo de sangre (tab Información médica)" }).min(1, "Selecciona el tipo de sangre (tab Información médica)"),
-  allergies: z.string({ required_error: "Completa el campo Alergias (tab Información médica)" }).min(1, "Completa el campo Alergias (tab Información médica)"),
-  conditions: z.string({ required_error: "Completa el campo Condiciones médicas (tab Información médica)" }).min(1, "Completa el campo Condiciones médicas (tab Información médica)"),
+  bloodType: z.string().min(1, "Selecciona el tipo de sangre (tab Información médica)"),
+  allergies: z.string().min(1, "Completa el campo Alergias (tab Información médica)"),
+  conditions: z.string().min(1, "Completa el campo Condiciones médicas (tab Información médica)"),
   medications: z.string().optional(),
-  repFullName: z.string({ required_error: "Nombre del representante requerido (tab Representante)" }).min(2, "Nombre del representante requerido (tab Representante)"),
-  repRelationship: z.string({ required_error: "Parentesco requerido (tab Representante)" }).min(1, "Parentesco requerido (tab Representante)"),
-  repPhone: z.string({ required_error: "Teléfono del representante requerido (tab Representante)" }).min(7, "Teléfono del representante requerido (tab Representante)"),
-  repEmail: z.string().email().optional().or(z.literal("")),
-  repDocumentId: z.string().optional(),
+  repFullName: z.string().min(2, "Nombre del representante requerido (tab Representante)"),
+  repRelationship: z.string().min(1, "Parentesco requerido (tab Representante)"),
+  repPhone: z.string().min(7, "Teléfono del representante requerido (tab Representante)"),
+  repEmail: z.string().email("Correo del representante inválido (tab Representante)").min(1, "Correo del representante requerido (tab Representante)"),
+  repDocumentId: z.string().min(5, "Cédula del representante requerida (tab Representante)"),
 });
 
 export async function submitInscripcion(
@@ -145,7 +145,8 @@ export async function submitInscripcion(
     .eq("status", "active");
 
   if (admins?.length) {
-    const memberLink = `/${orgSlug}/dashboard/miembros/${member.id}`;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+    const memberLink = `${appUrl}/${orgSlug}/dashboard/miembros/${member.id}`;
     await supabase.from("notifications").insert(
       admins.map((a: { user_id: string }) => ({
         organization_id: orgId,

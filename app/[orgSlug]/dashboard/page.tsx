@@ -97,6 +97,25 @@ export default async function DashboardHomePage({
       .limit(5),
   ]);
 
+  // Fetch first active class enrollment for each recent member
+  const recentMemberIds = (recentMembersRes.data ?? []).map((m) => m.id);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: enrollmentRows } = recentMemberIds.length > 0
+    ? await (supabase as any)
+        .from("class_enrollments")
+        .select("member_id, classes(name)")
+        .in("member_id", recentMemberIds)
+        .eq("status", "active")
+    : { data: [] };
+
+  // Map member_id -> first class name
+  const memberClassMap: Record<string, string> = {};
+  for (const row of (enrollmentRows ?? []) as Array<{ member_id: string; classes: { name: string } | null }>) {
+    if (row.classes && !memberClassMap[row.member_id]) {
+      memberClassMap[row.member_id] = row.classes.name;
+    }
+  }
+
   const activeMembers = activeMembersRes.count ?? 0;
   const pendingPayments = pendingRes.count ?? 0;
 
@@ -283,7 +302,8 @@ export default async function DashboardHomePage({
                 <thead>
                   <tr className="border-b border-[#1a1a2e] bg-[#0d0d1a]">
                     <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-[#4b5563]">Nombre</th>
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-[#4b5563]">Teléfono</th>
+                    <th className="hidden px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-[#4b5563] sm:table-cell">Teléfono</th>
+                    <th className="hidden px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-[#4b5563] md:table-cell">Clase</th>
                     <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-[#4b5563]">Estado</th>
                   </tr>
                 </thead>
@@ -301,7 +321,10 @@ export default async function DashboardHomePage({
                           {member.full_name}
                         </Link>
                       </td>
-                      <td className="px-4 py-3 text-[#6b7280]">{member.phone}</td>
+                      <td className="hidden px-4 py-3 text-[#6b7280] sm:table-cell">{member.phone}</td>
+                      <td className="hidden px-4 py-3 text-[#6b7280] md:table-cell">
+                        {memberClassMap[member.id] ?? "—"}
+                      </td>
                       <td className="px-4 py-3">
                         <StatusBadge status={member.status} />
                       </td>

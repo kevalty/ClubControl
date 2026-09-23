@@ -230,13 +230,14 @@ export function InscripcionForm({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="documentId">Cédula del estudiante</Label>
+              <Label htmlFor="documentId">Cédula del estudiante <span className="text-destructive">*</span></Label>
               <Input
                 id="documentId"
                 name="documentId"
                 value={vals.documentId}
                 onChange={set("documentId")}
-                placeholder="Opcional"
+                required
+                placeholder="Número de cédula"
               />
             </div>
           </div>
@@ -438,24 +439,26 @@ export function InscripcionForm({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="repEmail">Correo electrónico</Label>
+              <Label htmlFor="repEmail">Correo electrónico <span className="text-destructive">*</span></Label>
               <Input
                 id="repEmail"
                 name="repEmail"
                 type="email"
                 value={vals.repEmail}
                 onChange={set("repEmail")}
-                placeholder="Opcional"
+                required
+                placeholder="correo@ejemplo.com"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="repDocumentId">Cédula del representante</Label>
+              <Label htmlFor="repDocumentId">Cédula del representante <span className="text-destructive">*</span></Label>
               <Input
                 id="repDocumentId"
                 name="repDocumentId"
                 value={vals.repDocumentId}
                 onChange={set("repDocumentId")}
-                placeholder="Opcional"
+                required
+                placeholder="Número de cédula"
               />
             </div>
           </div>

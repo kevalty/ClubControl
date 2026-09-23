@@ -72,7 +72,7 @@ export default async function PagosPage({
     .eq("organization_id", org!.id)
     .order("created_at", { ascending: false });
 
-  const estadoFiltro = estado ?? "pending_review";
+  const estadoFiltro = estado ?? "todos";
   if (estadoFiltro !== "todos") {
     query = query.eq("status", estadoFiltro);
   }

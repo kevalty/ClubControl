@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { LinkButton } from "@/components/ui/link-button";
 import { Badge } from "@/components/ui/badge";
@@ -106,7 +107,14 @@ export default async function ClasesPage({
                 };
                 return (
                   <TableRow key={c.id}>
-                    <TableCell className="font-medium">{c.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <Link
+                        href={`/${orgSlug}/dashboard/clases/${c.id}`}
+                        className="hover:underline hover:text-primary"
+                      >
+                        {c.name}
+                      </Link>
+                    </TableCell>
                     <TableCell>
                       {labelDias(rule.days)} {rule.start_time}–{rule.end_time}
                     </TableCell>

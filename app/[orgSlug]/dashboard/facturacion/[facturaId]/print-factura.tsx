@@ -36,7 +36,7 @@ export function PrintFactura({ org, factura }: { org: Org; factura: Factura }) {
         <Button onClick={() => window.print()}>Imprimir / Guardar PDF</Button>
       </div>
       <div
-        className="rounded-lg border bg-white p-8 text-sm print:border-none print:p-0 print:shadow-none"
+        className="rounded-lg border bg-white p-8 text-sm text-gray-900 print:border-none print:p-0 print:shadow-none"
         id="factura-content"
         style={{
           WebkitPrintColorAdjust: "exact",

@@ -44,9 +44,9 @@ export function AttendancePanel({
       {members.map((m) => (
         <div
           key={m.memberId}
-          className="flex items-center justify-between rounded-lg border border-[#1a1a2e] bg-[#0d0d1a] p-3"
+          className="flex flex-col gap-2 rounded-lg border border-[#1a1a2e] bg-[#0d0d1a] p-3 sm:flex-row sm:items-center sm:justify-between"
         >
-          <span className="mr-3 truncate text-sm font-medium">{m.fullName}</span>
+          <span className="text-sm font-medium">{m.fullName}</span>
           <div className="flex shrink-0 gap-1.5">
             <button
               disabled={pending}

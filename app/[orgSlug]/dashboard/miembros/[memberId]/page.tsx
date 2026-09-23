@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { LinkButton } from "@/components/ui/link-button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +24,7 @@ export default async function MiembroDetallePage({
   const { data: member } = await supabase
     .from("members")
     .select(
-      "id, organization_id, full_name, email, phone, document_id, birth_date, status, registration_status, join_date, user_id, school, grade, notes, qr_code, location_id, fee_type_id"
+      "id, organization_id, full_name, email, phone, document_id, birth_date, status, registration_status, join_date, user_id, school, grade, notes, qr_code, location_id, fee_type_id, cedula_url, photo_url"
     )
     .eq("id", memberId)
     .maybeSingle();
@@ -74,7 +75,7 @@ export default async function MiembroDetallePage({
       .maybeSingle(),
     supabase
       .from("member_representatives")
-      .select("id, full_name, relationship, phone, email, document_id, is_primary")
+      .select("id, full_name, relationship, phone, email, document_id, is_primary, cedula_url")
       .eq("member_id", memberId)
       .order("is_primary", { ascending: false }),
     member.location_id
@@ -120,6 +121,46 @@ export default async function MiembroDetallePage({
   ]);
 
   const payments = paymentsResult.data;
+
+  // ===== SIGNED URLS FOR INSCRIPTION DOCUMENTS =====
+  // Only generate when there's a pending approval and at least one document exists.
+  // Uses service client to bypass RLS on the private member-documents bucket.
+  type SignedDoc = { label: string; url: string; isImage: boolean };
+  const signedDocs: SignedDoc[] = [];
+
+  const isPendingApproval =
+    (member as { registration_status?: string }).registration_status ===
+    "pending_approval";
+
+  if (isPendingApproval) {
+    const serviceClient = createServiceClient();
+    const memberWithDocs = member as typeof member & {
+      cedula_url?: string | null;
+      photo_url?: string | null;
+    };
+    const primaryRep = representatives?.find((r) => r.is_primary) ?? representatives?.[0];
+    const repWithDoc = primaryRep as
+      | (typeof primaryRep & { cedula_url?: string | null })
+      | undefined;
+
+    const docEntries: { path: string | null | undefined; label: string; isImage: boolean }[] = [
+      { path: memberWithDocs.photo_url, label: "Foto del estudiante", isImage: true },
+      { path: memberWithDocs.cedula_url, label: "Cédula del estudiante", isImage: false },
+      { path: repWithDoc?.cedula_url, label: "Cédula del representante", isImage: false },
+    ];
+
+    for (const entry of docEntries) {
+      if (entry.path) {
+        const { data } = await serviceClient.storage
+          .from("member-documents")
+          .createSignedUrl(entry.path, 3600);
+        if (data?.signedUrl) {
+          signedDocs.push({ label: entry.label, url: data.signedUrl, isImage: entry.isImage });
+        }
+      }
+    }
+  }
+  // ==================================================
 
   const tieneMembresiaActiva = (memberships ?? []).some(
     (m) => m.status === "active"
@@ -180,6 +221,40 @@ export default async function MiembroDetallePage({
           <p className="text-xs text-muted-foreground mb-3">
             Revisa los datos del miembro y aprueba o rechaza la solicitud para activar su acceso.
           </p>
+
+          {/* Documentos de inscripción */}
+          {signedDocs.length > 0 ? (
+            <div className="mb-4 space-y-3">
+              <p className="text-xs font-semibold text-yellow-300">Documentos de inscripción</p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {signedDocs.map((doc) => (
+                  <div key={doc.label} className="space-y-1">
+                    <p className="text-xs text-muted-foreground">{doc.label}</p>
+                    {doc.isImage ? (
+                      <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={doc.url}
+                          alt={doc.label}
+                          className="h-32 w-full rounded-md border border-[#1a1a2e] object-cover"
+                        />
+                      </a>
+                    ) : (
+                      <a
+                        href={doc.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 rounded-md border border-yellow-500/40 bg-yellow-500/10 px-3 py-2 text-xs font-medium text-yellow-300 hover:bg-yellow-500/20 transition-colors"
+                      >
+                        Ver documento
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           <div className="flex gap-2">
             <AprobarRechazarButtons
               orgSlug={orgSlug}
