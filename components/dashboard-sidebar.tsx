@@ -75,6 +75,7 @@ function buildGroups(
         { href: `/${orgSlug}/dashboard/configuracion/suscripcion`, label: "Suscripción", icon: Settings },
         { href: `/${orgSlug}/dashboard/configuracion/sedes`, label: "Sedes", icon: Landmark },
         { href: `/${orgSlug}/dashboard/configuracion/rubros`, label: "Rubros", icon: Landmark },
+        { href: `/${orgSlug}/dashboard/configuracion/familias`, label: "Grupos familiares", icon: Users },
         { href: `/${orgSlug}/dashboard/facturacion`, label: "Facturación", icon: CreditCard },
       ],
     },

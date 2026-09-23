@@ -51,12 +51,26 @@ export default async function NuevoPagoPage({
     )
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: fgmRaw } = await (supabase as any)
+    .from("family_group_members")
+    .select("member_id, family_groups!inner(id, name, discount_amount, discount_percent, organization_id)")
+    .eq("family_groups.organization_id", org!.id);
+
+  type FamilyGroup = { id: string; name: string; discount_amount: number | null; discount_percent: number | null };
+  const familyGroupMap = Object.fromEntries(
+    ((fgmRaw ?? []) as Array<{ member_id: string; family_groups: FamilyGroup }>).map(
+      (row) => [row.member_id, row.family_groups]
+    )
+  ) as Record<string, FamilyGroup>;
+
   const miembros = (
     (miembrosRaw ?? []) as Array<{ id: string; full_name: string; fee_type_id: string | null }>
   ).map((m) => ({
     id: m.id,
     full_name: m.full_name,
     rubro: m.fee_type_id ? rubroMap.get(m.fee_type_id) ?? null : null,
+    familyGroup: familyGroupMap[m.id] ?? null,
   }));
 
   const action = registrarPago.bind(null, orgSlug, org!.id);
@@ -69,6 +83,7 @@ export default async function NuevoPagoPage({
         miembros={miembros}
         planes={planes ?? []}
         preselectedMemberId={preselectedMemberId}
+        familyGroupMap={familyGroupMap}
         membresias={(membresias ?? []).map((m) => ({
           id: m.id,
           member_id: m.member_id,

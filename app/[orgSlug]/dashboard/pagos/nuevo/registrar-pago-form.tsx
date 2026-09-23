@@ -15,7 +15,8 @@ import {
 import { PAYMENT_METHOD_LABELS } from "@/lib/validations/payment";
 
 type Rubro = { id: string; name: string; discount_percent: number };
-type Miembro = { id: string; full_name: string; rubro: Rubro | null };
+type FamilyGroup = { id?: string; name: string; discount_amount: number | null; discount_percent: number | null };
+type Miembro = { id: string; full_name: string; rubro: Rubro | null; familyGroup?: FamilyGroup | null };
 type Plan = { id: string; name: string; price: number };
 type Membresia = {
   id: string;
@@ -32,6 +33,7 @@ export function RegistrarPagoForm({
   planes,
   membresias,
   preselectedMemberId,
+  familyGroupMap = {},
 }: {
   action: (
     prevState: { error?: string } | undefined,
@@ -41,6 +43,7 @@ export function RegistrarPagoForm({
   planes: Plan[];
   membresias: Membresia[];
   preselectedMemberId?: string;
+  familyGroupMap?: Record<string, FamilyGroup>;
 }) {
   const [state, formAction, pending] = useActionState(action, undefined);
   const [memberId, setMemberId] = useState<string>(preselectedMemberId ?? "");
@@ -126,6 +129,18 @@ export function RegistrarPagoForm({
           </SelectContent>
         </Select>
       </div>
+
+      {/* Descuento familiar */}
+      {miembroSeleccionado?.familyGroup ?? (memberId ? familyGroupMap[memberId] : null) ? (
+        <p className="text-xs text-amber-400 mt-1">
+          {(miembroSeleccionado?.familyGroup ?? familyGroupMap[memberId]).name}:{" "}
+          {(miembroSeleccionado?.familyGroup ?? familyGroupMap[memberId]).discount_amount != null
+            ? `descuento familiar -$${Number((miembroSeleccionado?.familyGroup ?? familyGroupMap[memberId]).discount_amount).toFixed(2)}`
+            : (miembroSeleccionado?.familyGroup ?? familyGroupMap[memberId]).discount_percent != null
+              ? `descuento familiar ${(miembroSeleccionado?.familyGroup ?? familyGroupMap[memberId]).discount_percent}%`
+              : "sin descuento configurado"}
+        </p>
+      ) : null}
 
       {/* Mostrar rubro del miembro seleccionado */}
       {miembroSeleccionado?.rubro ? (
