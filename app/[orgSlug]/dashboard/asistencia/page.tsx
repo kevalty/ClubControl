@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { registrarAsistenciaManual } from "@/app/[orgSlug]/dashboard/asistencia/actions";
 import { RegistrarAsistenciaForm } from "@/app/[orgSlug]/dashboard/asistencia/registrar-form";
@@ -95,6 +96,22 @@ export default async function AsistenciaPage({
         <LinkButton href={`/${orgSlug}/checkin`} target="_blank" variant="outline">
           Abrir modo kiosco
         </LinkButton>
+      </div>
+
+      <div className="rounded-xl border border-[#1a1a2e] bg-[#0d0d1a] p-5">
+        <h2 className="text-lg font-semibold text-white mb-1">
+          Marcar asistencia por clase
+        </h2>
+        <p className="text-sm text-muted-foreground mb-3">
+          Selecciona una clase para ver sus sesiones y marcar la asistencia de
+          los alumnos.
+        </p>
+        <Link
+          href={`/${orgSlug}/dashboard/asistencia/clases`}
+          className="inline-flex items-center gap-2 rounded-lg bg-[#6366f1] px-4 py-2 text-sm font-semibold text-white hover:bg-[#5254cc] transition-colors"
+        >
+          Ver clases →
+        </Link>
       </div>
 
       <RegistrarAsistenciaForm action={action} miembros={miembros ?? []} />
