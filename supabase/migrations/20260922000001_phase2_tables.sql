@@ -67,7 +67,7 @@ create policy "teams_select_same_org" on teams for select
     where user_id = auth.uid() and status = 'active'
   ));
 
-create policy "teams_write_admin_roles" on teams for insert, update, delete
+create policy "teams_write_admin_roles" on teams for all
   using (organization_id in (
     select organization_id from organization_members
     where user_id = auth.uid() and status = 'active' and role in ('owner','admin','staff')
@@ -85,7 +85,7 @@ create policy "team_members_select" on team_members for select
     where om.user_id = auth.uid() and om.status = 'active'
   ));
 
-create policy "team_members_write" on team_members for insert, update, delete
+create policy "team_members_write" on team_members for all
   using (team_id in (
     select t.id from teams t
     join organization_members om on om.organization_id = t.organization_id
@@ -103,7 +103,7 @@ create policy "class_enrollments_select" on class_enrollments for select
     where user_id = auth.uid() and status = 'active'
   ));
 
-create policy "class_enrollments_write" on class_enrollments for insert, update, delete
+create policy "class_enrollments_write" on class_enrollments for all
   using (organization_id in (
     select organization_id from organization_members
     where user_id = auth.uid() and status = 'active' and role in ('owner','admin','staff','trainer')
