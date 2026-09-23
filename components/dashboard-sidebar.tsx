@@ -19,6 +19,7 @@ import {
   Megaphone,
   ClipboardList,
   Trophy,
+  BarChart2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logout } from "@/app/auth/actions";
@@ -55,6 +56,7 @@ function buildGroups(
           icon: ClipboardList,
           badge: pendingInscripciones > 0 ? pendingInscripciones : undefined,
         },
+        { href: `/${orgSlug}/dashboard/reportes`, label: "Reportes", icon: BarChart2 },
       ],
     },
     {
