@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -124,6 +124,34 @@ export function InscripcionForm({
 
   const setSel = (k: keyof FormVals) => (v: string) =>
     setVals((p) => ({ ...p, [k]: v }));
+
+  // Warn user before leaving if they have started filling the form.
+  useEffect(() => {
+    const hasData =
+      vals.documentId !== "" ||
+      vals.birthDate !== "" ||
+      vals.repDocumentId !== "" ||
+      vals.cedulaEstudianteFile !== null ||
+      vals.cedulaRepresentanteFile !== null ||
+      vals.fotoEstudianteFile !== null;
+
+    if (!hasData || state?.success) return;
+
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [
+    vals.documentId,
+    vals.birthDate,
+    vals.repDocumentId,
+    vals.cedulaEstudianteFile,
+    vals.cedulaRepresentanteFile,
+    vals.fotoEstudianteFile,
+    state?.success,
+  ]);
 
   // Auto-switch to the tab that contains the error field.
   const handleError = (error: string) => {

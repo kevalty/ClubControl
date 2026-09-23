@@ -69,6 +69,43 @@ export async function submitInscripcion(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const supabase = createServiceClient() as any;
 
+  // ── Validar cédula del estudiante única dentro de la organización ──
+  const { data: dupStudent } = await supabase
+    .from("members")
+    .select("id")
+    .eq("organization_id", orgId)
+    .eq("document_id", d.documentId)
+    .maybeSingle();
+  if (dupStudent) {
+    return {
+      error:
+        "Ya existe un deportista registrado con esa cédula (tab Datos del estudiante). Si ya tiene una inscripción anterior, contacta al administrador del club.",
+    };
+  }
+
+  // ── Validar cédula del representante única dentro de la organización ──
+  const { data: orgMemberRows } = await supabase
+    .from("members")
+    .select("id")
+    .eq("organization_id", orgId);
+  const orgMemberIds: string[] = (orgMemberRows ?? []).map(
+    (m: { id: string }) => m.id
+  );
+  if (orgMemberIds.length > 0) {
+    const { data: dupRep } = await supabase
+      .from("member_representatives")
+      .select("id")
+      .in("member_id", orgMemberIds)
+      .eq("document_id", d.repDocumentId)
+      .maybeSingle();
+    if (dupRep) {
+      return {
+        error:
+          "Ya existe un representante registrado con esa cédula (tab Representante). Si ya figura como representante de otro deportista, contacta al administrador.",
+      };
+    }
+  }
+
   const { data: member, error: memberError } = await supabase
     .from("members")
     .insert({
@@ -118,8 +155,10 @@ export async function submitInscripcion(
     medications: d.medications || null,
   });
   if (medError) {
+    // Rollback: delete member (cascades medical info)
+    await supabase.from("members").delete().eq("id", member.id);
     console.error("[inscripcion] medError:", JSON.stringify(medError));
-    return { error: `Error guardando info médica: ${medError.message} (código: ${medError.code})` };
+    return { error: "Error al guardar la información médica. Intenta de nuevo." };
   }
 
   const { error: repError } = await supabase.from("member_representatives").insert({
@@ -133,8 +172,10 @@ export async function submitInscripcion(
     is_primary: true,
   });
   if (repError) {
+    // Rollback: delete member (cascades medical info and representative)
+    await supabase.from("members").delete().eq("id", member.id);
     console.error("[inscripcion] repError:", JSON.stringify(repError));
-    return { error: `Error guardando representante: ${repError.message} (código: ${repError.code})` };
+    return { error: "Error al guardar los datos del representante. Intenta de nuevo." };
   }
 
   const { data: admins } = await supabase
