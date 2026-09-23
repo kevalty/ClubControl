@@ -60,6 +60,7 @@ export default async function EquipoPage({
     .from("profiles")
     .select("id, full_name, email")
     .in("id", userIds.length > 0 ? userIds : ["00000000-0000-0000-0000-000000000000"])
+    .then((r: { data: unknown }) => r)
     .catch(() => ({ data: [] }));
 
   const profileMap = new Map(

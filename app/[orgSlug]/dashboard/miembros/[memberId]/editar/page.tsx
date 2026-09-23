@@ -47,7 +47,6 @@ export default async function EditarMiembroPage({
       .from("locations")
       .select("id, name")
       .eq("organization_id", member.organization_id)
-      .eq("is_active", true)
       .order("name"),
     supabase
       .from("fee_types")

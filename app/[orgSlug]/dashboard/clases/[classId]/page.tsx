@@ -61,9 +61,32 @@ export default async function ClaseDetailPage({
     .eq("status", "active")
     .order("full_name");
 
-  const availableMembers = (allActiveMembers ?? []).filter(
-    (m) => !enrolledIds.has(m.id)
-  );
+  // Fetch which class each non-enrolled member is currently in
+  const availableIds = (allActiveMembers ?? [])
+    .filter((m) => !enrolledIds.has(m.id))
+    .map((m) => m.id);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: otherEnrollments } = availableIds.length > 0
+    ? await (supabase as any)
+        .from("class_enrollments")
+        .select("member_id, class_id, classes(name)")
+        .in("member_id", availableIds)
+        .eq("organization_id", orgId)
+        .eq("status", "active")
+    : { data: [] };
+
+  // Map member_id → first class name they're in
+  const memberClassMap: Record<string, string> = {};
+  for (const e of otherEnrollments ?? []) {
+    if (!memberClassMap[e.member_id] && e.classes?.name) {
+      memberClassMap[e.member_id] = e.classes.name;
+    }
+  }
+
+  const availableMembers = (allActiveMembers ?? [])
+    .filter((m) => !enrolledIds.has(m.id))
+    .map((m) => ({ ...m, currentClass: memberClassMap[m.id] ?? null }));
 
   const rule = clase.recurrence_rule as unknown as {
     days: string[];

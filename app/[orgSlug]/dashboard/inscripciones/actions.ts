@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 
 export async function aprobarInscripcion(
   orgSlug: string,
@@ -34,8 +35,10 @@ export async function aprobarInscripcion(
   if (error) return { error: "No se pudo aprobar la inscripción." };
 
   if (classId) {
+    // Use service client to bypass RLS on class_enrollments
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error: enrollError } = await (supabase as any).from("class_enrollments").insert({
+    const serviceClient = createServiceClient() as any;
+    const { error: enrollError } = await serviceClient.from("class_enrollments").insert({
       organization_id: org.id,
       class_id: classId,
       member_id: memberId,
@@ -43,11 +46,12 @@ export async function aprobarInscripcion(
     });
     // Duplicate enrollment (23505) is acceptable — the member is already enrolled
     if (enrollError && enrollError.code !== "23505") {
-      console.error("[aprobar] enrollError:", enrollError);
+      console.error("[aprobar] enrollError:", JSON.stringify(enrollError));
       return { error: "Miembro aprobado pero no se pudo asignar la clase. Asígnala manualmente desde el perfil del miembro." };
     }
   }
 
+  revalidatePath(`/${orgSlug}/dashboard`, "layout");
   revalidatePath(`/${orgSlug}/dashboard/inscripciones`);
   revalidatePath(`/${orgSlug}/dashboard/miembros/${memberId}`);
   return {};
