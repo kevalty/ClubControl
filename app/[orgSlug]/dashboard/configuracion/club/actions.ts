@@ -45,9 +45,10 @@ export async function updateClubSettings(
     updates.logo_url = publicUrl;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await supabase
     .from("organizations")
-    .update(updates)
+    .update(updates as any)
     .eq("id", org.id);
   if (error) return { error: "No se pudo actualizar la configuración." };
 

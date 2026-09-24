@@ -57,7 +57,8 @@ export async function crearMiembro(
   }
 
   const supabase = await createClient();
-  const { data: nuevoMiembro, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: nuevoMiembro, error } = await (supabase as any)
     .from("members")
     .insert({
       organization_id: orgId,
@@ -88,7 +89,8 @@ export async function crearMiembro(
     notes: ext.medical_notes,
   };
   if (Object.values(medFields).some(Boolean)) {
-    await supabase.from("member_medical_info").insert({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from("member_medical_info").insert({
       member_id: nuevoMiembro.id,
       ...medFields,
     });
@@ -96,7 +98,8 @@ export async function crearMiembro(
 
   // Guardar representante principal si tiene nombre y parentesco y teléfono
   if (ext.rep_full_name && ext.rep_relationship && ext.rep_phone) {
-    await supabase.from("member_representatives").insert({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from("member_representatives").insert({
       member_id: nuevoMiembro.id,
       full_name: ext.rep_full_name,
       relationship: ext.rep_relationship,
@@ -149,7 +152,8 @@ export async function actualizarMiembro(
   if (!org) return { error: "Organización no encontrada." };
 
   // Defensa en profundidad (CLAUDE.md §3 + §11.1): filtrar por id Y organization_id.
-  const { error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
     .from("members")
     .update({
       full_name: parsed.data.fullName,
@@ -178,7 +182,8 @@ export async function actualizarMiembro(
     medications: ext.medications,
     notes: ext.medical_notes,
   };
-  await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase as any)
     .from("member_medical_info")
     .upsert(
       { member_id: memberId, ...medFields, updated_at: new Date().toISOString() },
@@ -187,7 +192,8 @@ export async function actualizarMiembro(
 
   // Upsert representante principal: si existe, actualizar; si no, insertar.
   if (ext.rep_full_name && ext.rep_relationship && ext.rep_phone) {
-    const { data: existingRep } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: existingRep } = await (supabase as any)
       .from("member_representatives")
       .select("id")
       .eq("member_id", memberId)
@@ -195,7 +201,8 @@ export async function actualizarMiembro(
       .maybeSingle();
 
     if (existingRep) {
-      await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase as any)
         .from("member_representatives")
         .update({
           full_name: ext.rep_full_name,
@@ -206,7 +213,8 @@ export async function actualizarMiembro(
         })
         .eq("id", existingRep.id);
     } else {
-      await supabase.from("member_representatives").insert({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase as any).from("member_representatives").insert({
         member_id: memberId,
         full_name: ext.rep_full_name,
         relationship: ext.rep_relationship,

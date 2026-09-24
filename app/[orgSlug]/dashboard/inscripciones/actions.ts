@@ -27,7 +27,8 @@ export async function aprobarInscripcion(
   if (feeTypeId) updates.fee_type_id = feeTypeId;
   if (locationId) updates.location_id = locationId;
 
-  const { error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
     .from("members")
     .update(updates)
     .eq("id", memberId)
@@ -71,7 +72,8 @@ export async function rechazarInscripcion(
     .maybeSingle();
   if (!org) return { error: "Organización no encontrada." };
 
-  const { error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
     .from("members")
     .update({ registration_status: "rejected", status: "inactive" })
     .eq("id", memberId)

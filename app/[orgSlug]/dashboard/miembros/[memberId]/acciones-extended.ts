@@ -10,7 +10,8 @@ export async function enviarLinkInscripcion(
   const supabase = await createClient();
 
   // Fetch primary representative's contact info
-  const { data: rep } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: rep } = await (supabase as any)
     .from("member_representatives")
     .select("phone, full_name")
     .eq("member_id", memberId)

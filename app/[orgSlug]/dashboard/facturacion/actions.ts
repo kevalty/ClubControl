@@ -19,13 +19,15 @@ export async function crearFacturaSimulada(
   formData: FormData
 ): Promise<{ error?: string }> {
   const parsed = FacturaSchema.safeParse(Object.fromEntries(formData.entries()));
-  if (!parsed.success) return { error: parsed.error.errors[0].message };
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
 
   const supabase = await createClient();
   const { data: authUser } = await supabase.auth.getUser();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const svc = supabase as any;
   // Get next sequential number: MAX + 1 to avoid gaps from deletes
-  const { data: maxRow } = await supabase
+  const { data: maxRow } = await svc
     .from("sim_invoices")
     .select("sequential_number")
     .eq("organization_id", orgId)
@@ -38,7 +40,7 @@ export async function crearFacturaSimulada(
   const tax_amount = Number((d.subtotal * 0.15).toFixed(2));
   const total = Number((d.subtotal + tax_amount).toFixed(2));
 
-  const { error } = await supabase.from("sim_invoices").insert({
+  const { error } = await svc.from("sim_invoices").insert({
     organization_id: orgId,
     sequential_number: sequential,
     recipient_name: d.recipient_name,

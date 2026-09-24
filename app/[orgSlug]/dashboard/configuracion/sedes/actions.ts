@@ -21,10 +21,11 @@ export async function crearSede(
     address: formData.get("address") || undefined,
     phone: formData.get("phone") || undefined,
   });
-  if (!parsed.success) return { error: parsed.error.errors[0].message };
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
 
   const supabase = await createClient();
-  const { error } = await supabase.from("locations").insert({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any).from("locations").insert({
     organization_id: orgId,
     ...parsed.data,
   });
@@ -45,10 +46,11 @@ export async function editarSede(
     address: formData.get("address") || undefined,
     phone: formData.get("phone") || undefined,
   });
-  if (!parsed.success) return { error: parsed.error.errors[0].message };
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
 
   const supabase = await createClient();
-  const { error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
     .from("locations")
     .update(parsed.data)
     .eq("id", sedeId)
@@ -60,5 +62,6 @@ export async function editarSede(
 
 export async function toggleSede(sedeId: string, isActive: boolean) {
   const supabase = await createClient();
-  await supabase.from("locations").update({ is_active: isActive }).eq("id", sedeId);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase as any).from("locations").update({ is_active: isActive }).eq("id", sedeId);
 }

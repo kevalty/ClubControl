@@ -14,7 +14,8 @@ export default async function EditarMiembroPage({
   const { orgSlug, memberId } = await params;
   const supabase = await createClient();
 
-  const { data: member } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: member } = await (supabase as any)
     .from("members")
     .select(
       "id, organization_id, full_name, email, phone, document_id, birth_date, school, grade, location_id, fee_type_id, notes"
@@ -32,23 +33,27 @@ export default async function EditarMiembroPage({
     { data: locations },
     { data: feeTypes },
   ] = await Promise.all([
-    supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
       .from("member_medical_info")
       .select("blood_type, allergies, conditions, medications, notes")
       .eq("member_id", memberId)
       .maybeSingle(),
-    supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
       .from("member_representatives")
       .select("full_name, relationship, phone, email, document_id")
       .eq("member_id", memberId)
       .eq("is_primary", true)
       .maybeSingle(),
-    supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
       .from("locations")
       .select("id, name")
       .eq("organization_id", member.organization_id)
       .order("name"),
-    supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
       .from("fee_types")
       .select("id, name, discount_percent")
       .eq("organization_id", member.organization_id)

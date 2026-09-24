@@ -13,7 +13,8 @@ export default async function EditarRubroPage({
   const { data: org } = await supabase.from("organizations").select("id").eq("slug", orgSlug).maybeSingle();
   if (!org) notFound();
 
-  const { data: rubro } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: rubro } = await (supabase as any)
     .from("fee_types")
     .select("name, description, discount_percent")
     .eq("id", rubroId)

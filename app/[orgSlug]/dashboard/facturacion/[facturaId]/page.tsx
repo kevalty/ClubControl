@@ -17,7 +17,8 @@ export default async function VerFacturaPage({
     .maybeSingle();
   if (!org) notFound();
 
-  const { data: factura } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: factura } = await (supabase as any)
     .from("sim_invoices")
     .select("*")
     .eq("id", facturaId)

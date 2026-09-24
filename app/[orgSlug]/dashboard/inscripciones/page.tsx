@@ -24,7 +24,8 @@ export default async function InscripcionesPage({
     { data: locations },
     { data: clases },
   ] = await Promise.all([
-    supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
       .from("members")
       .select(
         "id, full_name, birth_date, school, grade, created_at, registration_status"
@@ -81,7 +82,8 @@ export default async function InscripcionesPage({
         </p>
       ) : (
         <div className="divide-y rounded-lg border">
-          {pendingMembers.map((m) => (
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          {pendingMembers.map((m: any) => (
             <div
               key={m.id}
               className="flex flex-wrap items-center justify-between gap-4 p-4"

@@ -21,7 +21,8 @@ export default async function MiembroDetallePage({
   const { orgSlug, memberId } = await params;
   const supabase = await createClient();
 
-  const { data: member } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: member } = await (supabase as any)
     .from("members")
     .select(
       "id, organization_id, full_name, email, phone, document_id, birth_date, status, registration_status, join_date, user_id, school, grade, notes, qr_code, location_id, fee_type_id, cedula_url, photo_url"
@@ -68,25 +69,29 @@ export default async function MiembroDetallePage({
           .select("id, amount, method, status, created_at")
           .eq("member_id", memberId)
           .order("created_at", { ascending: false }),
-    supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
       .from("member_medical_info")
       .select("blood_type, allergies, conditions, medications, notes")
       .eq("member_id", memberId)
       .maybeSingle(),
-    supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
       .from("member_representatives")
       .select("id, full_name, relationship, phone, email, document_id, is_primary, cedula_url")
       .eq("member_id", memberId)
       .order("is_primary", { ascending: false }),
     member.location_id
-      ? supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ? (supabase as any)
           .from("locations")
           .select("name")
           .eq("id", member.location_id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
     member.fee_type_id
-      ? supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ? (supabase as any)
           .from("fee_types")
           .select("name, discount_percent")
           .eq("id", member.fee_type_id)
@@ -138,7 +143,8 @@ export default async function MiembroDetallePage({
       cedula_url?: string | null;
       photo_url?: string | null;
     };
-    const primaryRep = representatives?.find((r) => r.is_primary) ?? representatives?.[0];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const primaryRep = representatives?.find((r: any) => r.is_primary) ?? representatives?.[0];
     const repWithDoc = primaryRep as
       | (typeof primaryRep & { cedula_url?: string | null })
       | undefined;
@@ -376,7 +382,8 @@ export default async function MiembroDetallePage({
             <CardTitle className="text-base">Representantes</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {representatives.map((rep) => (
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {representatives.map((rep: any) => (
               <div key={rep.id} className="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <div className="text-muted-foreground">

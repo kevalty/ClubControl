@@ -12,7 +12,8 @@ export default async function RubrosPage({
   const { data: org } = await supabase.from("organizations").select("id").eq("slug", orgSlug).maybeSingle();
   if (!org) notFound();
 
-  const { data: rubros } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: rubros } = await (supabase as any)
     .from("fee_types")
     .select("id, name, description, discount_percent, is_active")
     .eq("organization_id", org.id)
@@ -30,7 +31,8 @@ export default async function RubrosPage({
         <p className="text-muted-foreground">No hay rubros creados. Crea el primero para asignar tarifas especiales a tus estudiantes.</p>
       ) : (
         <div className="divide-y rounded-lg border">
-          {rubros.map((r) => (
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          {rubros.map((r: any) => (
             <div key={r.id} className="flex items-center justify-between p-4">
               <div>
                 <p className="font-medium">{r.name}</p>

@@ -21,10 +21,11 @@ export async function crearRubro(
     description: formData.get("description") || undefined,
     discount_percent: formData.get("discount_percent") ?? 0,
   });
-  if (!parsed.success) return { error: parsed.error.errors[0].message };
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
 
   const supabase = await createClient();
-  const { error } = await supabase.from("fee_types").insert({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any).from("fee_types").insert({
     organization_id: orgId,
     ...parsed.data,
   });
@@ -45,10 +46,11 @@ export async function editarRubro(
     description: formData.get("description") || undefined,
     discount_percent: formData.get("discount_percent") ?? 0,
   });
-  if (!parsed.success) return { error: parsed.error.errors[0].message };
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
 
   const supabase = await createClient();
-  const { error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
     .from("fee_types")
     .update(parsed.data)
     .eq("id", rubroId)

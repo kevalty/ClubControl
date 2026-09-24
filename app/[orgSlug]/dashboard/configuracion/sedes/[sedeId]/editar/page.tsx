@@ -18,7 +18,8 @@ export default async function EditarSedeePage({
     .maybeSingle();
   if (!org) notFound();
 
-  const { data: sede } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: sede } = await (supabase as any)
     .from("locations")
     .select("id, name, address, phone")
     .eq("id", sedeId)

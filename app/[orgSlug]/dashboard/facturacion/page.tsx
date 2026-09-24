@@ -16,7 +16,8 @@ export default async function FacturacionPage({
     .maybeSingle();
   if (!org) notFound();
 
-  const { data: facturas } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: facturas } = await (supabase as any)
     .from("sim_invoices")
     .select("id, sequential_number, recipient_name, concept, total, created_at")
     .eq("organization_id", org.id)
@@ -39,7 +40,8 @@ export default async function FacturacionPage({
         <p className="text-muted-foreground">No hay facturas simuladas generadas.</p>
       ) : (
         <div className="divide-y rounded-lg border">
-          {facturas.map((f) => (
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          {facturas.map((f: any) => (
             <div key={f.id} className="flex items-center justify-between p-4">
               <div>
                 <p className="font-medium">#{String(f.sequential_number).padStart(9, "0")} — {f.recipient_name}</p>

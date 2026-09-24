@@ -36,9 +36,10 @@ export async function guardarPerfilClub(
   }
 
   const supabase = await createClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await supabase
     .from("organizations")
-    .update(updates)
+    .update(updates as any)
     .eq("id", orgId);
 
   if (error) {

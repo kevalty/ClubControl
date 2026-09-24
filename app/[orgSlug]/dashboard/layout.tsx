@@ -26,7 +26,8 @@ export default async function DashboardLayout({
       .from("payments")
       .select("*", { count: "exact", head: true })
       .eq("status", "pending_review"),
-    supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
       .from("members")
       .select("*", { count: "exact", head: true })
       .eq("registration_status", "pending_approval"),

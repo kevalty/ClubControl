@@ -16,13 +16,15 @@ export default async function NuevoMiembroPage({
     .single();
 
   const [{ data: locations }, { data: feeTypes }] = await Promise.all([
-    supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
       .from("locations")
       .select("id, name")
       .eq("organization_id", org!.id)
       .eq("is_active", true)
       .order("name"),
-    supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
       .from("fee_types")
       .select("id, name, discount_percent")
       .eq("organization_id", org!.id)
