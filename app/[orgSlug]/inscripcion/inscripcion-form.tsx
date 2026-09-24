@@ -612,6 +612,57 @@ export function InscripcionForm({
           ))}
         </div>
 
+        {/* Consentimiento explícito — LOPDP art. 26 lit. a (datos sensibles + menores) */}
+        <div className="rounded-lg border bg-muted/30 p-4 space-y-3 text-sm">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              name="consentimiento"
+              required
+              aria-required="true"
+              className="mt-0.5 h-4 w-4 shrink-0 accent-primary"
+            />
+            <span className="text-muted-foreground">
+              Como representante legal del estudiante, <strong className="text-foreground">doy mi
+              consentimiento expreso e informado</strong> para que el club trate los
+              datos personales y de salud del estudiante (tipo de sangre, alergias,
+              condiciones médicas) con la finalidad exclusiva de gestionar su
+              membresía y garantizar su seguridad durante los entrenamientos, según
+              la{" "}
+              <a
+                href="/legal/privacidad"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline underline-offset-2"
+              >
+                Política de Privacidad
+              </a>
+              . <span className="text-destructive">*</span>
+            </span>
+          </label>
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              name="terminos"
+              required
+              aria-required="true"
+              className="mt-0.5 h-4 w-4 shrink-0 accent-primary"
+            />
+            <span className="text-muted-foreground">
+              He leído y acepto los{" "}
+              <a
+                href="/legal/terminos"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline underline-offset-2"
+              >
+                Términos y Condiciones
+              </a>{" "}
+              de uso de la plataforma. <span className="text-destructive">*</span>
+            </span>
+          </label>
+        </div>
+
         <Button
           type="submit"
           disabled={pending}
