@@ -95,7 +95,7 @@
   --secondary: #1a1a2e;
   --secondary-foreground: #d1d5db;
   --muted: #131325;
-  --muted-foreground: #6b7280;
+  --muted-foreground: #9ca3af;
   --accent: #1e1e35;
   --accent-foreground: #818cf8;
   --destructive: #ef4444;
@@ -127,5 +127,40 @@
   }
   html {
     @apply font-sans;
+  }
+
+  /* Global keyboard focus ring — applies to all interactive elements
+     not already styled by shadcn/ui. Visible only on keyboard nav (focus-visible). */
+  a:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid #6366f1;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Skip-to-main link for keyboard users — hidden until focused */
+  .skip-to-main {
+    position: absolute;
+    top: -100%;
+    left: 0.5rem;
+    z-index: 9999;
+    padding: 0.5rem 1rem;
+    background: #6366f1;
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 0 0 0.5rem 0.5rem;
+    text-decoration: none;
+    transition: top 0.1s;
+  }
+  .skip-to-main:focus-visible {
+    top: 0;
+    outline: 2px solid #fff;
+    outline-offset: 2px;
   }
 }

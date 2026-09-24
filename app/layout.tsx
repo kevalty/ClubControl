@@ -32,6 +32,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col">
+        <a href="#main-content" className="skip-to-main">
+          Saltar al contenido principal
+        </a>
         {children}
         <Toaster />
         <PwaRegister />

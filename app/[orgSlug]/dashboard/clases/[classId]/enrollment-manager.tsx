@@ -92,7 +92,11 @@ export function EnrollmentManager({
   return (
     <div className="space-y-8">
       {error && (
-        <p className="rounded-lg bg-[rgba(239,68,68,0.1)] px-4 py-2 text-sm text-[#f87171]">
+        <p
+          role="alert"
+          aria-live="assertive"
+          className="rounded-lg bg-[rgba(239,68,68,0.1)] px-4 py-2 text-sm text-[#f87171]"
+        >
           {error}
         </p>
       )}

@@ -193,7 +193,7 @@ export function InscripcionForm({
         }}
       >
         {state?.error ? (
-          <Alert variant="destructive">
+          <Alert variant="destructive" role="alert" aria-live="assertive">
             <AlertDescription className="space-y-1">
               <p className="font-medium">
                 Por favor completa lo siguiente antes de enviar:
@@ -214,18 +214,23 @@ export function InscripcionForm({
           </Alert>
         ) : null}
 
-        {/* Tab navigation bar — visual only, content panels are plain divs below */}
+        {/* Tab navigation bar */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as Tab)}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-4" role="tablist">
             {TABS.map((tab) => (
               <TabsTrigger
                 key={tab}
                 value={tab}
+                id={`tab-${tab}`}
+                aria-controls={`panel-${tab}`}
                 className="relative text-xs sm:text-sm"
               >
                 {TAB_LABELS[tab]}
                 {errorTab === tab ? (
-                  <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive border-2 border-background" />
+                  <span
+                    className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive border-2 border-background"
+                    aria-label="Esta sección tiene un error"
+                  />
                 ) : null}
               </TabsTrigger>
             ))}
@@ -233,7 +238,12 @@ export function InscripcionForm({
         </Tabs>
 
         {/* ===== TAB 1: DATOS DEL ESTUDIANTE ===== */}
-        <div className={activeTab === "personales" ? "space-y-4" : "hidden"}>
+        <div
+          id="panel-personales"
+          role="tabpanel"
+          aria-labelledby="tab-personales"
+          className={activeTab === "personales" ? "space-y-4" : "hidden"}
+        >
           <div className="space-y-2">
             <Label htmlFor="fullName">Nombre completo del estudiante *</Label>
             <Input
@@ -346,7 +356,12 @@ export function InscripcionForm({
         </div>
 
         {/* ===== TAB 2: INFORMACIÓN MÉDICA ===== */}
-        <div className={activeTab === "medico" ? "space-y-4" : "hidden"}>
+        <div
+          id="panel-medico"
+          role="tabpanel"
+          aria-labelledby="tab-medico"
+          className={activeTab === "medico" ? "space-y-4" : "hidden"}
+        >
           <p className="text-xs text-muted-foreground">
             Esta información es necesaria para la seguridad del estudiante
             durante los entrenamientos.
@@ -422,7 +437,12 @@ export function InscripcionForm({
         </div>
 
         {/* ===== TAB 3: REPRESENTANTE ===== */}
-        <div className={activeTab === "representante" ? "space-y-4" : "hidden"}>
+        <div
+          id="panel-representante"
+          role="tabpanel"
+          aria-labelledby="tab-representante"
+          className={activeTab === "representante" ? "space-y-4" : "hidden"}
+        >
           <p className="text-xs text-muted-foreground">
             Datos de la persona responsable del estudiante (padre, madre o
             tutor).
@@ -508,7 +528,12 @@ export function InscripcionForm({
         </div>
 
         {/* ===== TAB 4: DOCUMENTOS ===== */}
-        <div className={activeTab === "documentos" ? "space-y-4" : "hidden"}>
+        <div
+          id="panel-documentos"
+          role="tabpanel"
+          aria-labelledby="tab-documentos"
+          className={activeTab === "documentos" ? "space-y-4" : "hidden"}
+        >
           <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-400">
             Los tres documentos son obligatorios para completar la inscripción.
           </div>
