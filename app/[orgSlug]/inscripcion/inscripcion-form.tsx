@@ -160,6 +160,21 @@ export function InscripcionForm({
     setActiveTab(tab);
   };
 
+  // Client-side required-field check per tab. Prevents HTML5 validation from
+  // firing on hidden fields (display:none) — returns the first tab with
+  // missing data, or null if all required fields are filled.
+  const getFirstInvalidTab = (): Tab | null => {
+    if (!vals.fullName.trim() || !vals.birthDate || !vals.documentId.trim() || !vals.school.trim() || !vals.grade.trim())
+      return "personales";
+    if (!vals.bloodType || !vals.allergies.trim() || !vals.conditions.trim())
+      return "medico";
+    if (!vals.repFullName.trim() || !vals.repRelationship.trim() || vals.repPhone.trim().length < 7 || !vals.repEmail.trim() || vals.repDocumentId.trim().length < 5)
+      return "representante";
+    if (!vals.cedulaEstudianteFile || !vals.cedulaRepresentanteFile || !vals.fotoEstudianteFile)
+      return "documentos";
+    return null;
+  };
+
   if (state?.success) {
     return (
       <div className="rounded-lg border bg-card p-8 text-center space-y-3">
@@ -186,9 +201,13 @@ export function InscripcionForm({
         encType="multipart/form-data"
         className="space-y-5"
         suppressHydrationWarning
-        onSubmit={() => {
-          if (state?.error) {
-            handleError(state.error);
+        noValidate
+        onSubmit={(e) => {
+          const firstInvalid = getFirstInvalidTab();
+          if (firstInvalid) {
+            e.preventDefault();
+            setActiveTab(firstInvalid);
+            setErrorTab(firstInvalid);
           }
         }}
       >

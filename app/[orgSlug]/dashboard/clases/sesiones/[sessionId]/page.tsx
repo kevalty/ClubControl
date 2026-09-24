@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -53,9 +54,9 @@ export default async function SesionDetallePage({
         .eq("organization_id", session.organization_id)
         .eq("status", "active")
         .order("full_name"),
-      // Fetch permanent enrollments for this class
+      // Service client bypasses RLS — same pattern as class detail page.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (supabase as any)
+      (createServiceClient() as any)
         .from("class_enrollments")
         .select("member_id, members(id, full_name)")
         .eq("class_id", session.class_id)

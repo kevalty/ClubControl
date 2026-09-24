@@ -108,7 +108,7 @@ export function FacturaForm({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="subtotal">Subtotal (USD) *</Label>
+        <Label htmlFor="subtotal">Subtotal sin IVA (USD) *</Label>
         <Input
           id="subtotal"
           name="subtotal"

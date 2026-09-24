@@ -59,7 +59,9 @@ export async function updateSession(request: NextRequest) {
     // PWA (CLAUDE.md §10): un visitante sin sesión (ej. la landing) también
     // tiene que poder descargar el manifest y registrar el service worker.
     pathname === "/manifest.webmanifest" ||
-    pathname === "/sw.js";
+    pathname === "/sw.js" ||
+    // Páginas legales (privacidad, términos) deben ser accesibles sin sesión.
+    pathname.startsWith("/legal");
 
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();

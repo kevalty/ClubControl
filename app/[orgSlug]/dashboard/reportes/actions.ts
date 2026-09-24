@@ -3,7 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 
 function toCSV(headers: string[], rows: (string | number | null)[][]): string {
   const escape = (v: string | number | null) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-  return [headers.map(escape).join(","), ...rows.map((r) => r.map(escape).join(","))].join("\n");
+  // BOM makes Excel on Windows open UTF-8 files without garbled accents
+  const bom = "﻿";
+  return bom + [headers.map(escape).join(","), ...rows.map((r) => r.map(escape).join(","))].join("\n");
 }
 
 export async function exportarInscripciones(
