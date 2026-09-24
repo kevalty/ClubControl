@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -47,6 +49,7 @@ export function EnrollmentManager({
   enrolledMembers: EnrolledMember[];
   availableMembers: AvailableMember[];
 }) {
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [conflictMember, setConflictMember] = useState<AvailableMember | null>(null);
@@ -55,7 +58,13 @@ export function EnrollmentManager({
     setError(null);
     startTransition(async () => {
       const result = await enrollMember(orgSlug, orgId, classId, memberId);
-      if (result.error) setError(result.error);
+      if (result.error) {
+        setError(result.error);
+        toast.error(result.error);
+      } else {
+        toast.success("Deportista inscrito correctamente.");
+        router.refresh();
+      }
     });
   };
 
@@ -71,7 +80,12 @@ export function EnrollmentManager({
     setError(null);
     startTransition(async () => {
       const result = await unenrollMember(orgSlug, orgId, classId, memberId);
-      if (result.error) setError(result.error);
+      if (result.error) {
+        setError(result.error);
+        toast.error(result.error);
+      } else {
+        router.refresh();
+      }
     });
   };
 

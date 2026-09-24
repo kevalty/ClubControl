@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { EnrollmentManager } from "./enrollment-manager";
 import { WEEKDAYS } from "@/lib/validations/class";
 import { ArrowLeft } from "lucide-react";
@@ -12,6 +13,9 @@ export default async function ClaseDetailPage({
 }) {
   const { orgSlug, classId } = await params;
   const supabase = await createClient();
+  // Use service client for class_enrollments to bypass RLS (server-side reads)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const svc = createServiceClient() as any;
 
   const { data: org } = await supabase
     .from("organizations")
@@ -32,14 +36,14 @@ export default async function ClaseDetailPage({
 
   if (!clase) notFound();
 
-  // Fetch enrolled members (active enrollments)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: enrollmentsRaw } = await (supabase as any)
+  // Fetch enrolled members — service client bypasses RLS for server-side reads
+  const { data: enrollmentsRaw, error: enrollErr } = await svc
     .from("class_enrollments")
     .select("member_id, members(id, full_name, phone, status)")
     .eq("class_id", classId)
     .eq("organization_id", orgId)
     .eq("status", "active");
+  if (enrollErr) console.error("[claseDetail] enrollmentsRaw error:", JSON.stringify(enrollErr));
 
   const enrolledMembers = (enrollmentsRaw ?? [])
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -66,9 +70,8 @@ export default async function ClaseDetailPage({
     .filter((m) => !enrolledIds.has(m.id))
     .map((m) => m.id);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: otherEnrollments } = availableIds.length > 0
-    ? await (supabase as any)
+    ? await svc
         .from("class_enrollments")
         .select("member_id, class_id, classes(name)")
         .in("member_id", availableIds)

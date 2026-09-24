@@ -11,11 +11,34 @@ export async function guardarPerfilClub(
   const orgId = String(formData.get("orgId") ?? "");
   const address = String(formData.get("address") ?? "").trim();
   const primaryColor = String(formData.get("primaryColor") ?? "#0EA5E9").trim();
+  const logoFile = formData.get("logo") as File | null;
+
+  const updates: Record<string, unknown> = {
+    address: address || null,
+    primary_color: primaryColor,
+  };
+
+  if (logoFile && logoFile.size > 0) {
+    const serviceClient = createServiceClient() as unknown as ReturnType<typeof createServiceClient>;
+    const ext = logoFile.name.split(".").pop() ?? "png";
+    const path = `${orgId}/logo.${ext}`;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: uploadError } = await (serviceClient as any).storage
+      .from("org-logos")
+      .upload(path, logoFile, { upsert: true, contentType: logoFile.type });
+    if (!uploadError) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: { publicUrl } } = (serviceClient as any).storage
+        .from("org-logos")
+        .getPublicUrl(path);
+      updates.logo_url = publicUrl;
+    }
+  }
 
   const supabase = await createClient();
   const { error } = await supabase
     .from("organizations")
-    .update({ address: address || null, primary_color: primaryColor })
+    .update(updates)
     .eq("id", orgId);
 
   if (error) {

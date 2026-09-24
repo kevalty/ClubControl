@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CheckCircle2, Clock } from "lucide-react";
 import {
   ORGANIZATION_STATUS_LABELS,
   PLATFORM_PAYMENT_STATUS_LABELS,
@@ -31,7 +31,6 @@ export default async function SuscripcionPage({
     .eq("user_id", userData.user?.id ?? "")
     .maybeSingle();
 
-  // CLAUDE.md §8.11: "Solo visible para owner".
   if (myMembership?.role !== "owner") {
     redirect(`/${orgSlug}/dashboard`);
   }
@@ -62,64 +61,98 @@ export default async function SuscripcionPage({
     price_monthly: number;
   } | null;
 
+  const statusLabel = ORGANIZATION_STATUS_LABELS[org!.status] ?? org!.status;
+  const isTrial = org!.status === "trial";
+
   return (
-    <div className="max-w-lg space-y-8">
+    <div className="space-y-8">
       <div>
-        <h1 className="mb-4 text-2xl font-semibold">Suscripción de tu club</h1>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Plan actual</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Badge>{ORGANIZATION_STATUS_LABELS[org!.status] ?? org!.status}</Badge>
-            {planActual ? (
-              <p className="text-sm">
-                <span className="font-medium">{planActual.name}</span> — $
-                {Number(planActual.price_monthly).toFixed(2)}/mes
-              </p>
-            ) : null}
-            {suscripcion?.current_period_end ? (
-              <p className="text-sm text-muted-foreground">
-                Vigente hasta {new Date(suscripcion.current_period_end).toLocaleDateString("es-EC")}
-              </p>
-            ) : null}
-            {org!.status === "trial" && org!.trial_ends_at ? (
-              <p className="text-sm text-muted-foreground">
-                Prueba gratuita hasta{" "}
-                {new Date(org!.trial_ends_at).toLocaleDateString("es-EC")}
-              </p>
-            ) : null}
-          </CardContent>
-        </Card>
+        <h1 className="text-2xl font-bold text-white">Suscripción</h1>
+        <p className="mt-1 text-sm text-[#6b7280]">Gestiona el plan de tu club</p>
       </div>
 
-      <div>
-        <h2 className="mb-3 text-lg font-medium">Pagar o cambiar de plan</h2>
+      {/* Plan actual */}
+      <div className="rounded-xl border border-[#1a1a2e] bg-[#0d0d1a] p-6">
+        <p className="mb-4 text-xs font-bold uppercase tracking-widest text-[#3d3d5c]">Plan actual</p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xl font-bold text-white">
+              {planActual?.name ?? "Sin plan"}
+            </p>
+            {planActual && (
+              <p className="mt-1 text-sm text-[#6b7280]">
+                ${Number(planActual.price_monthly).toFixed(2)}/mes
+              </p>
+            )}
+          </div>
+          <Badge
+            className={
+              isTrial
+                ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                : "bg-[#6366f1]/10 text-[#818cf8] border-[#6366f1]/20"
+            }
+          >
+            {statusLabel}
+          </Badge>
+        </div>
+
+        <div className="mt-4 space-y-2">
+          {suscripcion?.current_period_end && (
+            <div className="flex items-center gap-2 text-sm text-[#6b7280]">
+              <CheckCircle2 className="size-4 text-[#4ade80]" />
+              Vigente hasta{" "}
+              {new Date(suscripcion.current_period_end).toLocaleDateString("es-EC")}
+            </div>
+          )}
+          {isTrial && org!.trial_ends_at && (
+            <div className="flex items-center gap-2 text-sm text-[#6b7280]">
+              <Clock className="size-4 text-amber-400" />
+              Prueba gratuita hasta{" "}
+              {new Date(org!.trial_ends_at).toLocaleDateString("es-EC")}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Pagar / cambiar plan */}
+      <div className="rounded-xl border border-[#1a1a2e] bg-[#0d0d1a] p-6">
+        <p className="mb-4 text-xs font-bold uppercase tracking-widest text-[#3d3d5c]">Pagar o cambiar de plan</p>
         <PagarSuscripcionForm
           action={registrarPagoSuscripcion.bind(null, orgSlug, org!.id)}
           planes={planes ?? []}
-          planActualId={planActual?.id}
         />
       </div>
 
-      {pagos && pagos.length > 0 ? (
-        <div>
-          <h2 className="mb-3 text-lg font-medium">Historial</h2>
-          <ul className="divide-y rounded-lg border">
+      {/* Historial */}
+      {pagos && pagos.length > 0 && (
+        <div className="rounded-xl border border-[#1a1a2e] bg-[#0d0d1a] p-6">
+          <p className="mb-4 text-xs font-bold uppercase tracking-widest text-[#3d3d5c]">Historial de pagos</p>
+          <div className="divide-y divide-[#1a1a2e]">
             {pagos.map((p) => (
-              <li key={p.id} className="flex items-center justify-between p-3 text-sm">
-                <span>
-                  {(p.subscription_plans as unknown as { name: string } | null)?.name} — $
-                  {Number(p.amount).toFixed(2)}
-                </span>
-                <Badge variant={p.status === "approved" ? "default" : "secondary"}>
+              <div key={p.id} className="flex items-center justify-between py-3 text-sm">
+                <div>
+                  <p className="text-white">
+                    {(p.subscription_plans as unknown as { name: string } | null)?.name ?? "Plan"}
+                  </p>
+                  <p className="text-xs text-[#6b7280]">
+                    {new Date(p.created_at).toLocaleDateString("es-EC")} — $
+                    {Number(p.amount).toFixed(2)}
+                  </p>
+                </div>
+                <Badge
+                  className={
+                    p.status === "approved"
+                      ? "bg-[#4ade80]/10 text-[#4ade80] border-[#4ade80]/20"
+                      : "bg-[#1a1a2e] text-[#6b7280] border-transparent"
+                  }
+                >
                   {PLATFORM_PAYMENT_STATUS_LABELS[p.status] ?? p.status}
                 </Badge>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

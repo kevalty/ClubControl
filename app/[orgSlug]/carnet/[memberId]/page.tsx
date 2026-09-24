@@ -25,6 +25,16 @@ export default async function CarnetPage({
 
   if (!member) notFound(); // invalid token or wrong member id
 
+  // Generate a signed URL for the member photo (private bucket)
+  let photoSignedUrl: string | null = null;
+  if (member.photo_url) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: signed } = await (supabase as any).storage
+      .from("member-documents")
+      .createSignedUrl(member.photo_url, 3600);
+    photoSignedUrl = signed?.signedUrl ?? null;
+  }
+
   const { data: org } = await supabase
     .from("organizations")
     .select("name, logo_url, primary_color")
@@ -42,7 +52,7 @@ export default async function CarnetPage({
 
   return (
     <CarnetView
-      member={member}
+      member={{ ...member, photo_url: photoSignedUrl }}
       org={{
         name: org?.name ?? orgSlug,
         logo_url: org?.logo_url ?? null,

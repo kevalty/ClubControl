@@ -19,6 +19,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Upload } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -69,6 +70,7 @@ export function OnboardingWizard({ org }: { org: Org }) {
 
 function StepPerfilClub({ org, onNext }: { org: Org; onNext: () => void }) {
   const [state, formAction, pending] = useActionState(guardarPerfilClub, undefined);
+  const [logoPreview, setLogoPreview] = useState<string | null>(org.logo_url);
 
   useEffect(() => {
     if (state?.ok) onNext();
@@ -83,6 +85,39 @@ function StepPerfilClub({ org, onNext }: { org: Org; onNext: () => void }) {
             <AlertDescription>{state.error}</AlertDescription>
           </Alert>
         ) : null}
+
+        {/* Logo upload */}
+        <div className="space-y-2">
+          <Label>Logo del club <span className="text-muted-foreground">(opcional)</span></Label>
+          <div className="flex items-center gap-4">
+            {logoPreview ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logoPreview} alt="Logo" className="h-14 w-14 rounded-lg object-contain border bg-muted p-1" />
+            ) : (
+              <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-dashed bg-muted">
+                <Upload className="size-5 text-muted-foreground" />
+              </div>
+            )}
+            <div>
+              <label htmlFor="logo" className="cursor-pointer rounded-md border px-3 py-1.5 text-sm hover:bg-muted transition-colors">
+                {logoPreview ? "Cambiar" : "Subir logo"}
+              </label>
+              <input
+                id="logo"
+                name="logo"
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) setLogoPreview(URL.createObjectURL(f));
+                }}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">PNG, JPG o SVG</p>
+            </div>
+          </div>
+        </div>
+
         <div className="space-y-2">
           <Label htmlFor="address">Dirección (opcional)</Label>
           <Input id="address" name="address" defaultValue={org.address ?? ""} />
@@ -97,11 +132,6 @@ function StepPerfilClub({ org, onNext }: { org: Org; onNext: () => void }) {
             className="h-10 w-20 p-1"
           />
         </div>
-        <p className="text-xs text-muted-foreground">
-          {/* TODO: confirmar con cliente si se necesita subir el logo en este
-          mismo paso o si se puede dejar para después desde configuración. */}
-          Puedes subir el logo de tu club más tarde desde Configuración.
-        </p>
       </CardContent>
       <CardFooter className="justify-end">
         <Button type="submit" disabled={pending}>

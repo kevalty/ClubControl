@@ -135,12 +135,16 @@ function buildTrainerGroups(orgSlug: string): NavGroup[] {
 export function DashboardSidebar({
   orgSlug,
   orgName,
+  orgLogoUrl = null,
+  primaryColor = "#6366f1",
   pendingPayments = 0,
   pendingInscripciones = 0,
   userRole = "staff",
 }: {
   orgSlug: string;
   orgName: string;
+  orgLogoUrl?: string | null;
+  primaryColor?: string;
   pendingPayments?: number;
   pendingInscripciones?: number;
   userRole?: string;
@@ -154,15 +158,28 @@ export function DashboardSidebar({
 
   const sidebarContent = (
     <div className="flex h-full flex-col">
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-5">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#6366f1] to-[#8b5cf6]">
-          <svg className="size-4 fill-white" viewBox="0 0 24 24">
-            <path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </div>
+      {/* Club identity — click to go to settings */}
+      <Link
+        href={`/${orgSlug}/dashboard/configuracion/club`}
+        className="flex items-center gap-3 px-4 py-5 hover:bg-[rgba(99,102,241,0.06)] transition-colors"
+      >
+        {orgLogoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={orgLogoUrl}
+            alt={orgName}
+            className="h-8 w-8 shrink-0 rounded-lg object-contain"
+          />
+        ) : (
+          <div
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white"
+            style={{ backgroundColor: primaryColor }}
+          >
+            {orgName.charAt(0).toUpperCase()}
+          </div>
+        )}
         <span className="text-sm font-bold tracking-wide text-white truncate">{orgName}</span>
-      </div>
+      </Link>
 
       {/* Nav groups */}
       <nav className="flex-1 overflow-y-auto px-3 pb-4">

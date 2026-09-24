@@ -19,7 +19,7 @@ export default async function DashboardLayout({
   const [{ data: org }, pendingResult, inscripcionesResult] = await Promise.all([
     supabase
       .from("organizations")
-      .select("id, name")
+      .select("id, name, logo_url, primary_color")
       .eq("slug", orgSlug)
       .maybeSingle(),
     supabase
@@ -62,13 +62,33 @@ export default async function DashboardLayout({
       <DashboardSidebar
         orgSlug={orgSlug}
         orgName={org.name}
+        orgLogoUrl={org.logo_url ?? null}
+        primaryColor={org.primary_color ?? "#6366f1"}
         pendingPayments={pendingPayments}
         pendingInscripciones={pendingInscripciones}
         userRole={userRole}
       />
       <div className="flex flex-1 flex-col min-h-0">
-        {/* Top bar with notification bell */}
-        <div className="flex items-center justify-end gap-2 border-b border-[#1a1a2e] bg-[#08080f] px-4 py-2">
+        {/* Top bar: club identity + notifications */}
+        <div className="flex items-center justify-between border-b border-[#1a1a2e] bg-[#08080f] px-4 py-2">
+          <div className="flex items-center gap-2.5">
+            {org.logo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={org.logo_url}
+                alt={org.name}
+                className="h-7 w-7 rounded-md object-contain"
+              />
+            ) : (
+              <div
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs font-bold text-white"
+                style={{ backgroundColor: org.primary_color ?? "#6366f1" }}
+              >
+                {org.name.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <span className="text-sm font-semibold text-white">{org.name}</span>
+          </div>
           <NotificationBell
             initialNotifications={
               // eslint-disable-next-line @typescript-eslint/no-explicit-any

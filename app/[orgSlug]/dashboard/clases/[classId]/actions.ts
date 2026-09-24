@@ -18,7 +18,8 @@ export async function enrollMember(
     status: "active",
   });
   if (error && error.code !== "23505") {
-    return { error: "No se pudo inscribir al miembro." };
+    console.error("[enrollMember] error:", JSON.stringify(error));
+    return { error: `No se pudo inscribir al miembro (${error.code ?? error.message}).` };
   }
   revalidatePath(`/${orgSlug}/dashboard/clases/${classId}`);
   return {};

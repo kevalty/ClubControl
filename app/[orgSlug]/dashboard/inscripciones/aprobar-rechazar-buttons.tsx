@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { rechazarInscripcion } from "./actions";
@@ -23,6 +24,7 @@ export function AprobarRechazarButtons({
   locations: Location[];
   clases: Clase[];
 }) {
+  const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [pending, startTransition] = useTransition();
 
@@ -30,7 +32,10 @@ export function AprobarRechazarButtons({
     startTransition(async () => {
       const result = await rechazarInscripcion(orgSlug, memberId);
       if (result?.error) toast.error(result.error);
-      else toast.info("Inscripción rechazada.");
+      else {
+        toast.info("Inscripción rechazada.");
+        router.refresh();
+      }
     });
   };
 
@@ -46,10 +51,12 @@ export function AprobarRechazarButtons({
           clases={clases}
           onDone={(ok) => {
             setShowModal(false);
-            if (ok)
+            if (ok) {
               toast.success(
                 "Inscripción aprobada. El miembro está ahora activo."
               );
+              router.refresh();
+            }
           }}
         />
       </div>

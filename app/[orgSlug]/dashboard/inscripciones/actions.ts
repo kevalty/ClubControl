@@ -49,6 +49,7 @@ export async function aprobarInscripcion(
       console.error("[aprobar] enrollError:", JSON.stringify(enrollError));
       return { error: "Miembro aprobado pero no se pudo asignar la clase. Asígnala manualmente desde el perfil del miembro." };
     }
+    revalidatePath(`/${orgSlug}/dashboard/clases/${classId}`);
   }
 
   revalidatePath(`/${orgSlug}/dashboard`, "layout");
