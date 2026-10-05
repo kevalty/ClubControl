@@ -12,6 +12,8 @@ import {
 import { MiembroAcciones } from "@/app/[orgSlug]/dashboard/miembros/[memberId]/miembro-acciones";
 import { AprobarRechazarButtons } from "@/app/[orgSlug]/dashboard/inscripciones/aprobar-rechazar-buttons";
 import { QrCodeCard } from "@/app/[orgSlug]/dashboard/miembros/[memberId]/qr-code-card";
+import { PagoRapidoForm } from "@/app/[orgSlug]/dashboard/miembros/[memberId]/pago-rapido-form";
+import { registrarPagoRapido } from "@/app/[orgSlug]/dashboard/miembros/[memberId]/pago-rapido-actions";
 
 export default async function MiembroDetallePage({
   params,
@@ -56,10 +58,11 @@ export default async function MiembroDetallePage({
     feeTypesListResult,
     locationsListResult,
     classesListResult,
+    planesResult,
   ] = await Promise.all([
     supabase
       .from("memberships")
-      .select("id, start_date, end_date, status, membership_plans(name)")
+      .select("id, plan_id, start_date, end_date, status, membership_plans(name)")
       .eq("member_id", memberId)
       .order("start_date", { ascending: false }),
     isTrainer
@@ -123,9 +126,20 @@ export default async function MiembroDetallePage({
           .eq("is_active", true)
           .order("name")
       : Promise.resolve({ data: null }),
+    isTrainer
+      ? Promise.resolve({ data: null })
+      : supabase
+          .from("membership_plans")
+          .select("id, name, price")
+          .eq("organization_id", member.organization_id)
+          .eq("is_active", true)
+          .order("name"),
   ]);
 
   const payments = paymentsResult.data;
+  const planes = (planesResult.data ?? []) as { id: string; name: string; price: number }[];
+  const defaultPlanId = (memberships?.[0] as { plan_id?: string } | undefined)?.plan_id;
+  const pagoRapidoAction = registrarPagoRapido.bind(null, orgSlug, member.organization_id, memberId);
 
   // ===== SIGNED URLS FOR INSCRIPTION DOCUMENTS =====
   // Only generate when there's a pending approval and at least one document exists.
@@ -498,6 +512,13 @@ export default async function MiembroDetallePage({
                 ))}
               </ul>
             )}
+            {planes.length > 0 ? (
+              <PagoRapidoForm
+                action={pagoRapidoAction}
+                planes={planes}
+                defaultPlanId={defaultPlanId}
+              />
+            ) : null}
           </CardContent>
         </Card>
       ) : null}

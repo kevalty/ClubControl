@@ -9,17 +9,20 @@ export async function enviarLinkInscripcion(
 ): Promise<{ error?: string }> {
   const supabase = await createClient();
 
-  // Fetch primary representative's contact info
+  // Prefer primary rep, fall back to any rep with a phone number.
+  // Ordering by is_primary DESC puts true (primary) first.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: rep } = await (supabase as any)
     .from("member_representatives")
     .select("phone, full_name")
     .eq("member_id", memberId)
-    .eq("is_primary", true)
+    .not("phone", "is", null)
+    .order("is_primary", { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   if (!rep) {
-    return { error: "No hay representante registrado para este miembro." };
+    return { error: "El miembro no tiene un representante con teléfono registrado." };
   }
 
   const { data: org } = await supabase
