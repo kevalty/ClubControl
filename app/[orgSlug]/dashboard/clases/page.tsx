@@ -25,17 +25,30 @@ export default async function ClasesPage({
   const { orgSlug } = await params;
   const { q } = await searchParams;
   const supabase = await createClient();
-  const { data: org } = await supabase
-    .from("organizations")
-    .select("id")
-    .eq("slug", orgSlug)
-    .single();
+
+  const [{ data: org }, { data: authData }] = await Promise.all([
+    supabase.from("organizations").select("id").eq("slug", orgSlug).single(),
+    supabase.auth.getUser(),
+  ]);
+
+  const { data: myMembership } = await supabase
+    .from("organization_members")
+    .select("role")
+    .eq("organization_id", org!.id)
+    .eq("user_id", authData.user?.id ?? "")
+    .maybeSingle();
+
+  const isTrainer = myMembership?.role === "trainer";
 
   let clasesQuery = supabase
     .from("classes")
     .select("id, name, capacity, location, recurrence_rule, is_active")
     .eq("organization_id", org!.id)
     .order("name");
+
+  if (isTrainer) {
+    clasesQuery = clasesQuery.eq("trainer_user_id", authData.user!.id);
+  }
 
   if (q) {
     clasesQuery = clasesQuery.ilike("name", `%${q}%`);
@@ -49,12 +62,14 @@ export default async function ClasesPage({
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Clases</h1>
+        <h1 className="text-2xl font-semibold">{isTrainer ? "Mis clases" : "Clases"}</h1>
         <div className="flex gap-2">
           <LinkButton href={`/${orgSlug}/dashboard/clases/calendario`} variant="outline">
             Ver calendario
           </LinkButton>
-          <LinkButton href={`/${orgSlug}/dashboard/clases/nuevo`}>Nueva clase</LinkButton>
+          {!isTrainer ? (
+            <LinkButton href={`/${orgSlug}/dashboard/clases/nuevo`}>Nueva clase</LinkButton>
+          ) : null}
         </div>
       </div>
 
@@ -76,6 +91,8 @@ export default async function ClasesPage({
         <div className="rounded-lg border border-dashed p-8 text-center text-muted-foreground">
           {q ? (
             <p>No hay clases que coincidan con la búsqueda.</p>
+          ) : isTrainer ? (
+            <p>No tienes clases asignadas aún.</p>
           ) : (
             <>
               <p>Aún no tienes clases creadas.</p>
@@ -95,7 +112,9 @@ export default async function ClasesPage({
                 <TableHead>Cupo</TableHead>
                 <TableHead>Lugar</TableHead>
                 <TableHead>Estado</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
+                {!isTrainer ? (
+                  <TableHead className="text-right">Acciones</TableHead>
+                ) : null}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -125,16 +144,18 @@ export default async function ClasesPage({
                         {c.is_active ? "Activa" : "Inactiva"}
                       </Badge>
                     </TableCell>
-                    <TableCell className="flex justify-end gap-2 text-right">
-                      <LinkButton
-                        href={`/${orgSlug}/dashboard/clases/${c.id}/editar`}
-                        variant="outline"
-                        size="sm"
-                      >
-                        Editar
-                      </LinkButton>
-                      <ClaseActivaToggle orgSlug={orgSlug} classId={c.id} activa={c.is_active} />
-                    </TableCell>
+                    {!isTrainer ? (
+                      <TableCell className="flex justify-end gap-2 text-right">
+                        <LinkButton
+                          href={`/${orgSlug}/dashboard/clases/${c.id}/editar`}
+                          variant="outline"
+                          size="sm"
+                        >
+                          Editar
+                        </LinkButton>
+                        <ClaseActivaToggle orgSlug={orgSlug} classId={c.id} activa={c.is_active} />
+                      </TableCell>
+                    ) : null}
                   </TableRow>
                 );
               })}
