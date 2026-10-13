@@ -64,6 +64,7 @@ function buildGroups(
       items: [
         { href: `/${orgSlug}/dashboard/asistencia`, label: "Asistencia", icon: QrCode },
         { href: `/${orgSlug}/dashboard/clases`, label: "Clases", icon: CalendarDays },
+        { href: `/${orgSlug}/dashboard/planes`, label: "Planes", icon: CreditCard },
         { href: `/${orgSlug}/dashboard/equipo`, label: "Equipos de torneo", icon: Trophy },
         { href: `/${orgSlug}/dashboard/staff`, label: "Staff / Equipo", icon: UserPlus },
       ],

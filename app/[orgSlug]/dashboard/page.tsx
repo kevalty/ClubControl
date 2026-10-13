@@ -33,6 +33,15 @@ export default async function DashboardHomePage({
   if (!org) notFound();
   const orgId = org.id;
 
+  const { data: authData } = await supabase.auth.getUser();
+  const { data: myMembership } = await supabase
+    .from("organization_members")
+    .select("role")
+    .eq("organization_id", orgId)
+    .eq("user_id", authData.user?.id ?? "")
+    .maybeSingle();
+  const isTrainer = myMembership?.role === "trainer";
+
   // Rangos de fecha
   const now = new Date();
   const y = now.getFullYear();
@@ -57,27 +66,33 @@ export default async function DashboardHomePage({
       .eq("organization_id", orgId)
       .eq("status", "active"),
 
-    supabase
-      .from("payments")
-      .select("amount")
-      .eq("organization_id", orgId)
-      .eq("status", "approved")
-      .gte("paid_at", startOfMonth)
-      .lt("paid_at", startOfNextMonth),
+    isTrainer
+      ? Promise.resolve({ data: [] })
+      : supabase
+          .from("payments")
+          .select("amount")
+          .eq("organization_id", orgId)
+          .eq("status", "approved")
+          .gte("paid_at", startOfMonth)
+          .lt("paid_at", startOfNextMonth),
 
-    supabase
-      .from("payments")
-      .select("amount")
-      .eq("organization_id", orgId)
-      .eq("status", "approved")
-      .gte("paid_at", startOfLastMonth)
-      .lt("paid_at", startOfMonth),
+    isTrainer
+      ? Promise.resolve({ data: [] })
+      : supabase
+          .from("payments")
+          .select("amount")
+          .eq("organization_id", orgId)
+          .eq("status", "approved")
+          .gte("paid_at", startOfLastMonth)
+          .lt("paid_at", startOfMonth),
 
-    supabase
-      .from("payments")
-      .select("*", { count: "exact", head: true })
-      .eq("organization_id", orgId)
-      .eq("status", "pending_review"),
+    isTrainer
+      ? Promise.resolve({ count: 0, data: null })
+      : supabase
+          .from("payments")
+          .select("*", { count: "exact", head: true })
+          .eq("organization_id", orgId)
+          .eq("status", "pending_review"),
 
     supabase
       .from("memberships")
@@ -174,8 +189,8 @@ export default async function DashboardHomePage({
 
       {/* KPI cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Revenue */}
-        <div className="relative overflow-hidden rounded-xl bg-[#111120] p-5">
+        {/* Revenue — oculto para entrenadores */}
+        {!isTrainer ? <div className="relative overflow-hidden rounded-xl bg-[#111120] p-5">
           <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-[#6366f1] to-[#8b5cf6]" />
           <p className="text-[10px] font-bold uppercase tracking-widest text-[#6b7280]">
             Recaudo — {monthName}
@@ -201,7 +216,7 @@ export default async function DashboardHomePage({
           ) : (
             <p className="mt-1.5 text-xs text-[#6b7280]">Sin datos del mes anterior</p>
           )}
-        </div>
+        </div> : null}
 
         {/* Active members */}
         <div className="relative overflow-hidden rounded-xl bg-[#111120] p-5">
@@ -216,8 +231,8 @@ export default async function DashboardHomePage({
           </p>
         </div>
 
-        {/* Pending payments */}
-        <Link href={`/${orgSlug}/dashboard/pagos`} className="group">
+        {/* Pending payments — oculto para entrenadores */}
+        {!isTrainer ? <Link href={`/${orgSlug}/dashboard/pagos`} className="group">
           <div
             className={cn(
               "relative overflow-hidden rounded-xl bg-[#111120] p-5 transition-colors group-hover:bg-[#14142a]",
@@ -246,7 +261,7 @@ export default async function DashboardHomePage({
               {pendingPayments > 0 ? "Requieren revisión →" : "Todo al día"}
             </p>
           </div>
-        </Link>
+        </Link> : null}
 
         {/* Expiring soon */}
         <div

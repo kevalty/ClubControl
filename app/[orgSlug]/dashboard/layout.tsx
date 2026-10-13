@@ -72,8 +72,8 @@ export default async function DashboardLayout({
         />
       </div>
       <div className="flex flex-1 flex-col min-h-0">
-        {/* Top bar: club identity + notifications */}
-        <div className="flex items-center justify-between border-b border-[#1a1a2e] bg-[#08080f] px-4 py-2 print:hidden">
+        {/* Top bar: club identity + notifications — solo desktop (mobile lo maneja el sidebar) */}
+        <div className="hidden md:flex items-center justify-between border-b border-[#1a1a2e] bg-[#08080f] px-4 py-2 print:hidden">
           <div className="flex items-center gap-2.5">
             {org.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element

@@ -44,11 +44,18 @@ export async function exportarIngresos(
     .order("created_at")
     .limit(5000);
   if (error) return { error: "Error al generar el reporte." };
+  const METHOD_LABELS: Record<string, string> = {
+    cash: "Efectivo",
+    bank_transfer: "Transferencia bancaria",
+    kushki: "Kushki",
+    payphone: "PayPhone",
+    other: "Otro",
+  };
   const rows = (data ?? []).map((r) => [
     new Date(r.created_at).toLocaleDateString("es-EC"),
     (r.members as { full_name: string } | null)?.full_name ?? "",
     Number(r.amount).toFixed(2),
-    r.method,
+    METHOD_LABELS[r.method] ?? r.method,
     r.reference_number ?? "",
   ]);
   return { csv: toCSV(["Fecha", "Miembro", "Monto (USD)", "Método", "Referencia"], rows) };

@@ -76,11 +76,12 @@ export function ClaseForm({
       </div>
       <div className="space-y-2">
         <Label htmlFor="trainerUserId">Entrenador (opcional)</Label>
-        <Select name="trainerUserId" defaultValue={initialValues?.trainer_user_id ?? ""}>
+        <Select name="trainerUserId" defaultValue={initialValues?.trainer_user_id ?? "_none"}>
           <SelectTrigger id="trainerUserId" className="w-full">
             <SelectValue placeholder="Sin asignar" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="_none">Sin asignar</SelectItem>
             {entrenadores.map((e) => (
               <SelectItem key={e.userId} value={e.userId}>
                 {e.name}

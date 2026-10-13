@@ -12,7 +12,7 @@ function parseClassForm(formData: FormData) {
   return classSchema.safeParse({
     name: formData.get("name"),
     description: formData.get("description") || undefined,
-    trainerUserId: formData.get("trainerUserId") || undefined,
+    trainerUserId: (() => { const v = formData.get("trainerUserId"); return (!v || v === "_none") ? undefined : v; })(),
     capacity: formData.get("capacity"),
     location: formData.get("location") || undefined,
     days: formData.getAll("days"),

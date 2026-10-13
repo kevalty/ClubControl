@@ -12,6 +12,7 @@ export function ReporteAsistencia({ orgId, clases }: { orgId: string; clases: { 
   const today = new Date().toISOString().slice(0, 10);
   const firstOfMonth = today.slice(0, 7) + "-01";
   const [classId, setClassId] = useState(clases[0]?.id ?? "");
+  const selectedClase = clases.find((c) => c.id === classId);
   const [desde, setDesde] = useState(firstOfMonth);
   const [hasta, setHasta] = useState(today);
   const [loading, setLoading] = useState(false);
@@ -39,7 +40,9 @@ export function ReporteAsistencia({ orgId, clases }: { orgId: string; clases: { 
         <Label>Clase</Label>
         <Select value={classId} onValueChange={setClassId}>
           <SelectTrigger className="w-64">
-            <SelectValue placeholder="Selecciona una clase" />
+            <SelectValue placeholder="Selecciona una clase">
+              {selectedClase?.name}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {clases.map((c) => (

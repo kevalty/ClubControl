@@ -106,12 +106,8 @@ export async function updateSession(request: NextRequest) {
         return new NextResponse("No autorizado para este club", { status: 403 });
       }
 
-      // Entrenadores no pueden acceder a rutas de pagos, planes, equipo ni
-      // configuración. Redirigir a su dashboard en lugar de mostrar 403 (mejor UX).
-      // Entrenadores pueden ver /miembros, /equipo (torneos) y /staff (solo lectura).
-      // No pueden acceder a escritura de miembros (/nuevo, /editar), pagos, planes,
-      // configuración, inscripciones, facturación ni WhatsApp.
-      // No pueden crear nuevos equipos (/equipo/nuevo).
+      // Entrenadores solo pueden acceder a: /clases, /asistencia, /miembros (lectura),
+      // /equipo (torneos, lectura), /staff (lectura). Todo lo demás redirige al dashboard.
       const isTrainerRestrictedPath =
         membership.role === "trainer" &&
         (pathname.includes("/pagos") ||
@@ -120,6 +116,7 @@ export async function updateSession(request: NextRequest) {
           pathname.includes("/inscripciones") ||
           pathname.includes("/facturacion") ||
           pathname.includes("/whatsapp") ||
+          pathname.includes("/reportes") ||
           pathname.match(/\/miembros\/nuevo/) !== null ||
           pathname.match(/\/miembros\/[^/]+\/editar/) !== null ||
           pathname.match(/\/equipo\/nuevo/) !== null);

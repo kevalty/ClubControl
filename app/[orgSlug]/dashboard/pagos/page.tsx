@@ -106,10 +106,10 @@ export default async function PagosPage({
           name="q"
           placeholder="Buscar por nombre del miembro"
           defaultValue={q}
-          className="max-w-xs"
+          className="w-full sm:max-w-xs"
         />
         <Select name="estado" defaultValue={estadoFiltro}>
-          <SelectTrigger className="w-56">
+          <SelectTrigger className="w-full sm:w-48">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -122,7 +122,7 @@ export default async function PagosPage({
           </SelectContent>
         </Select>
         <Select name="metodo" defaultValue={metodo ?? "todos"}>
-          <SelectTrigger className="w-56">
+          <SelectTrigger className="w-full sm:w-48">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -158,10 +158,10 @@ export default async function PagosPage({
               <TableRow>
                 <TableHead>Miembro</TableHead>
                 <TableHead>Monto</TableHead>
-                <TableHead>Método</TableHead>
-                <TableHead>Referencia</TableHead>
+                <TableHead className="hidden sm:table-cell">Método</TableHead>
+                <TableHead className="hidden lg:table-cell">Referencia</TableHead>
                 <TableHead>Estado</TableHead>
-                <TableHead>Fecha</TableHead>
+                <TableHead className="hidden md:table-cell">Fecha</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
@@ -169,11 +169,18 @@ export default async function PagosPage({
               {pagos.map((p) => (
                 <TableRow key={p.id}>
                   <TableCell className="font-medium">
-                    {p.members?.full_name ?? "—"}
+                    <div>{p.members?.full_name ?? "—"}</div>
+                    <div className="md:hidden text-xs text-muted-foreground">
+                      {new Date(p.created_at).toLocaleDateString("es-EC")}
+                    </div>
                   </TableCell>
                   <TableCell>${Number(p.amount).toFixed(2)}</TableCell>
-                  <TableCell>{PAYMENT_METHOD_LABELS[p.method] ?? p.method}</TableCell>
-                  <TableCell>{p.reference_number ?? "—"}</TableCell>
+                  <TableCell className="hidden sm:table-cell">
+                    {PAYMENT_METHOD_LABELS[p.method] ?? p.method}
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell">
+                    {p.reference_number ?? "—"}
+                  </TableCell>
                   <TableCell>
                     <Badge variant={STATUS_BADGE_VARIANT[p.status] ?? "secondary"}>
                       {PAYMENT_STATUS_LABELS[p.status] ?? p.status}
@@ -184,7 +191,9 @@ export default async function PagosPage({
                       </p>
                     ) : null}
                   </TableCell>
-                  <TableCell>{new Date(p.created_at).toLocaleDateString("es-EC")}</TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    {new Date(p.created_at).toLocaleDateString("es-EC")}
+                  </TableCell>
                   <TableCell className="text-right">
                     <PagoAcciones
                       orgSlug={orgSlug}

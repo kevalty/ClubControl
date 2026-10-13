@@ -21,7 +21,7 @@ export async function sendWhatsAppMessage(
   if (!accountSid || !authToken || !fromNumber) {
     return {
       ok: false,
-      error: "Twilio no está configurado (faltan variables de entorno TWILIO_*).",
+      error: "El servicio de WhatsApp aún no está activado para este club. Contacta al administrador.",
     };
   }
 

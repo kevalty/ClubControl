@@ -9,6 +9,7 @@ import {
   PAYMENT_METHOD_LABELS,
   PAYMENT_STATUS_LABELS,
 } from "@/lib/validations/payment";
+import { MEMBERSHIP_STATUS_LABELS } from "@/lib/validations/membership-plan";
 import { MiembroAcciones } from "@/app/[orgSlug]/dashboard/miembros/[memberId]/miembro-acciones";
 import { AprobarRechazarButtons } from "@/app/[orgSlug]/dashboard/inscripciones/aprobar-rechazar-buttons";
 import { QrCodeCard } from "@/app/[orgSlug]/dashboard/miembros/[memberId]/qr-code-card";
@@ -204,12 +205,14 @@ export default async function MiembroDetallePage({
           </Badge>
         </div>
         <div className="flex flex-wrap gap-2">
-          <LinkButton
-            href={`/${orgSlug}/dashboard/miembros/${memberId}/editar`}
-            variant="outline"
-          >
-            Editar
-          </LinkButton>
+          {!isTrainer ? (
+            <LinkButton
+              href={`/${orgSlug}/dashboard/miembros/${memberId}/editar`}
+              variant="outline"
+            >
+              Editar
+            </LinkButton>
+          ) : null}
           <LinkButton
             href={`/${orgSlug}/carnet/${memberId}?token=${member.qr_code}`}
             variant="outline"
@@ -225,6 +228,7 @@ export default async function MiembroDetallePage({
             tieneEmail={!!member.email}
             tieneAccesoPortal={!!member.user_id}
             puedeEliminar={puedeEliminar}
+            isTrainer={isTrainer}
             tieneRepresentante={
               !!(representatives && representatives.length > 0 && representatives[0].phone)
             }
@@ -459,7 +463,7 @@ export default async function MiembroDetallePage({
                     </span>
                   </span>
                   <Badge variant={m.status === "active" ? "default" : "secondary"}>
-                    {m.status}
+                    {MEMBERSHIP_STATUS_LABELS[m.status] ?? m.status}
                   </Badge>
                 </li>
               ))}

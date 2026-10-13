@@ -24,3 +24,10 @@ export const BILLING_CYCLE_LABELS: Record<string, string> = {
   class_pack: "Pack de clases",
   single_session: "Sesión individual",
 };
+
+export const MEMBERSHIP_STATUS_LABELS: Record<string, string> = {
+  active: "Activa",
+  expired: "Vencida",
+  frozen: "Congelada",
+  cancelled: "Cancelada",
+};

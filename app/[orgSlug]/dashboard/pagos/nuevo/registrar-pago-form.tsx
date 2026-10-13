@@ -117,7 +117,11 @@ export function RegistrarPagoForm({
           }}
         >
           <SelectTrigger id="memberId" className="w-full">
-            <SelectValue placeholder="Selecciona un miembro" />
+            <SelectValue placeholder="Selecciona un miembro">
+              {miembroSeleccionado
+                ? `${miembroSeleccionado.full_name}${miembroSeleccionado.rubro ? ` (${miembroSeleccionado.rubro.name})` : ""}`
+                : undefined}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {miembros.map((m) => (

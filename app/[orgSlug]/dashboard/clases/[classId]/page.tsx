@@ -91,6 +91,19 @@ export default async function ClaseDetailPage({
     .filter((m) => !enrolledIds.has(m.id))
     .map((m) => ({ ...m, currentClass: memberClassMap[m.id] ?? null }));
 
+  // Fetch upcoming sessions (next 60 days)
+  const today = new Date().toISOString().slice(0, 10);
+  const in60 = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const { data: sesiones } = await supabase
+    .from("class_sessions")
+    .select("id, session_date, start_time, end_time, status")
+    .eq("class_id", classId)
+    .eq("organization_id", orgId)
+    .gte("session_date", today)
+    .lte("session_date", in60)
+    .order("session_date", { ascending: true })
+    .limit(20);
+
   const rule = clase.recurrence_rule as unknown as {
     days: string[];
     start_time: string;
@@ -99,6 +112,12 @@ export default async function ClaseDetailPage({
 
   const labelDias = (days: string[]) =>
     days.map((d) => WEEKDAYS.find((w) => w.value === d)?.label ?? d).join(", ");
+
+  const SESSION_STATUS_LABELS: Record<string, string> = {
+    scheduled: "Programada",
+    cancelled: "Cancelada",
+    completed: "Completada",
+  };
 
   return (
     <div className="space-y-6">
@@ -139,6 +158,64 @@ export default async function ClaseDetailPage({
         >
           Editar clase
         </Link>
+      </div>
+
+      {/* Upcoming sessions */}
+      <div>
+        <h2 className="mb-3 text-base font-semibold text-white">Próximas sesiones</h2>
+        {!sesiones || sesiones.length === 0 ? (
+          <p className="text-sm text-[#6b7280]">No hay sesiones programadas en los próximos 60 días.</p>
+        ) : (
+          <div className="overflow-x-auto rounded-lg border border-[#1a1a2e]">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[#1a1a2e] text-left">
+                  <th className="px-4 py-2 font-medium text-[#9ca3af]">Fecha</th>
+                  <th className="hidden sm:table-cell px-4 py-2 font-medium text-[#9ca3af]">Horario</th>
+                  <th className="px-4 py-2 font-medium text-[#9ca3af]">Estado</th>
+                  <th className="px-4 py-2 text-right font-medium text-[#9ca3af]">Asistencia</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sesiones.map((s) => (
+                  <tr key={s.id} className="border-b border-[#1a1a2e] last:border-0 hover:bg-[#0f0f1f]">
+                    <td className="px-4 py-2 text-white">
+                      {new Date(s.session_date + "T00:00:00").toLocaleDateString("es-EC", {
+                        weekday: "short",
+                        day: "numeric",
+                        month: "short",
+                      })}
+                    </td>
+                    <td className="hidden sm:table-cell px-4 py-2 text-[#9ca3af]">
+                      {s.start_time.slice(0, 5)}–{s.end_time.slice(0, 5)}
+                    </td>
+                    <td className="px-4 py-2">
+                      <span
+                        className={
+                          s.status === "scheduled"
+                            ? "text-[#4ade80]"
+                            : s.status === "cancelled"
+                            ? "text-[#f87171]"
+                            : "text-[#9ca3af]"
+                        }
+                      >
+                        {SESSION_STATUS_LABELS[s.status] ?? s.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2 text-right">
+                      <Link
+                        href={`/${orgSlug}/dashboard/clases/sesiones/${s.id}`}
+                        className="text-[#818cf8] hover:text-[#a5b4fc] text-xs underline-offset-2 hover:underline"
+                      >
+                        Ver asistencia
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Enrollment manager */}

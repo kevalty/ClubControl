@@ -29,6 +29,7 @@ export function MiembroAcciones({
   tieneAccesoPortal,
   puedeEliminar,
   tieneRepresentante = false,
+  isTrainer = false,
 }: {
   orgSlug: string;
   memberId: string;
@@ -37,6 +38,7 @@ export function MiembroAcciones({
   tieneAccesoPortal: boolean;
   puedeEliminar: boolean;
   tieneRepresentante?: boolean;
+  isTrainer?: boolean;
 }) {
   const [pending, startTransition] = useTransition();
 
@@ -76,31 +78,35 @@ export function MiembroAcciones({
 
   return (
     <div className="flex flex-wrap gap-2">
-      {estado !== "expired" && estado !== "inactive" ? (
+      {!isTrainer && estado !== "expired" && estado !== "inactive" ? (
         <Button variant="outline" disabled={pending} onClick={congelarOReactivar}>
           {estado === "frozen" ? "Reactivar" : "Congelar membresía"}
         </Button>
       ) : null}
-      <Button
-        variant="outline"
-        disabled={pending || !tieneEmail}
-        onClick={generarAcceso}
-        title={!tieneEmail ? "El miembro necesita un correo registrado" : undefined}
-      >
-        {tieneAccesoPortal ? "Reenviar acceso al portal" : "Generar acceso al portal"}
-      </Button>
-      <Button
-        variant="outline"
-        disabled={pending || !tieneRepresentante}
-        onClick={enviarLink}
-        title={
-          !tieneRepresentante
-            ? "El miembro no tiene un representante con teléfono registrado"
-            : "Enviar link del formulario de inscripción al representante por WhatsApp"
-        }
-      >
-        Enviar link de inscripción
-      </Button>
+      {!isTrainer ? (
+        <Button
+          variant="outline"
+          disabled={pending || !tieneEmail}
+          onClick={generarAcceso}
+          title={!tieneEmail ? "El miembro necesita un correo registrado" : undefined}
+        >
+          {tieneAccesoPortal ? "Reenviar acceso al portal" : "Generar acceso al portal"}
+        </Button>
+      ) : null}
+      {!isTrainer ? (
+        <Button
+          variant="outline"
+          disabled={pending || !tieneRepresentante}
+          onClick={enviarLink}
+          title={
+            !tieneRepresentante
+              ? "El miembro no tiene un representante con teléfono registrado"
+              : "Enviar link del formulario de inscripción al representante por WhatsApp"
+          }
+        >
+          Enviar link de inscripción
+        </Button>
+      ) : null}
       {puedeEliminar ? (
         <Dialog>
           <DialogTrigger
