@@ -42,7 +42,7 @@ function buildGroups(
     {
       label: "General",
       items: [
-        { href: `/${orgSlug}/dashboard`, label: "Dashboard", icon: LayoutDashboard },
+        { href: `/${orgSlug}/dashboard/metricas`, label: "Dashboard", icon: LayoutDashboard },
         { href: `/${orgSlug}/dashboard/miembros`, label: "Miembros", icon: Users },
         {
           href: `/${orgSlug}/dashboard/pagos`,
@@ -184,11 +184,8 @@ export function DashboardSidebar({
 
       {/* Nav groups */}
       <nav className="flex-1 overflow-y-auto px-3 pb-4">
-        {groups.map((group) => (
-          <div key={group.label} className="mb-4">
-            <p className="mb-1 px-3 text-[10px] font-bold uppercase tracking-widest text-[#3d3d5c]">
-              {group.label}
-            </p>
+        {groups.map((group, i) => (
+          <div key={group.label} className={i > 0 ? "mt-2 border-t border-[#1a1a2e] pt-2" : ""}>
             <div className="space-y-0.5">
               {group.items.map((item) => (
                 <NavLink key={item.href} item={item} pathname={pathname} />
