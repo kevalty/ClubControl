@@ -141,6 +141,8 @@ export function DashboardSidebar({
   pendingPayments = 0,
   pendingInscripciones = 0,
   userRole = "staff",
+  desktopOpen = false,
+  onDesktopClose,
 }: {
   orgSlug: string;
   orgName: string;
@@ -149,6 +151,8 @@ export function DashboardSidebar({
   pendingPayments?: number;
   pendingInscripciones?: number;
   userRole?: string;
+  desktopOpen?: boolean;
+  onDesktopClose?: () => void;
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -212,10 +216,40 @@ export function DashboardSidebar({
 
   return (
     <>
-      {/* Desktop sidebar */}
-      <aside className="hidden w-[220px] shrink-0 border-r border-[#1a1a2e] bg-[#0d0d1a] md:flex md:flex-col">
-        {sidebarContent}
-      </aside>
+      {/* Desktop sidebar — overlay, controlled by shell */}
+      {desktopOpen && (
+        <div className="fixed inset-0 z-50 hidden md:block">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={onDesktopClose}
+          />
+          <aside className="absolute left-0 top-0 h-full w-[240px] border-r border-[#1a1a2e] bg-[#0d0d1a] flex flex-col">
+            <div className="flex items-center justify-between px-4 py-4 border-b border-[#1a1a2e]">
+              <div className="flex items-center gap-2.5">
+                {orgLogoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={orgLogoUrl} alt={orgName} className="h-7 w-7 rounded-md object-contain" />
+                ) : (
+                  <div
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs font-bold text-white"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    {orgName.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <span className="text-sm font-bold text-white truncate">{orgName}</span>
+              </div>
+              <button
+                onClick={onDesktopClose}
+                className="rounded-lg p-1 text-[#6b7280] hover:text-white"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+            {sidebarContent}
+          </aside>
+        </div>
+      )}
 
       {/* Mobile topbar + drawer */}
       <div className="flex items-center justify-between border-b border-[#1a1a2e] bg-[#0d0d1a] px-4 py-3 md:hidden">

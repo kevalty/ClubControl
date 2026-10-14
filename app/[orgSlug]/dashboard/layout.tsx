@@ -1,8 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { logout } from "@/app/auth/actions";
-import { DashboardSidebar } from "@/components/dashboard-sidebar";
-import { NotificationBell } from "@/components/dashboard/notification-bell";
+import { DashboardShell } from "@/components/dashboard-shell";
 
 export default async function DashboardLayout({
   children,
@@ -59,48 +57,18 @@ export default async function DashboardLayout({
   const pendingInscripciones = inscripcionesResult.count ?? 0;
 
   return (
-    <div className="flex h-full min-h-screen flex-col bg-[#08080f] md:flex-row">
-      <div className="print:hidden">
-        <DashboardSidebar
-          orgSlug={orgSlug}
-          orgName={org.name}
-          orgLogoUrl={org.logo_url ?? null}
-          primaryColor={org.primary_color ?? "#6366f1"}
-          pendingPayments={pendingPayments}
-          pendingInscripciones={pendingInscripciones}
-          userRole={userRole}
-        />
-      </div>
-      <div className="flex flex-1 flex-col min-h-0">
-        {/* Top bar: club identity + notifications — solo desktop (mobile lo maneja el sidebar) */}
-        <div className="hidden md:flex items-center justify-between border-b border-[#1a1a2e] bg-[#08080f] px-4 py-2 print:hidden">
-          <div className="flex items-center gap-2.5">
-            {org.logo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={org.logo_url}
-                alt={org.name}
-                className="h-7 w-7 rounded-md object-contain"
-              />
-            ) : (
-              <div
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs font-bold text-white"
-                style={{ backgroundColor: org.primary_color ?? "#6366f1" }}
-              >
-                {org.name.charAt(0).toUpperCase()}
-              </div>
-            )}
-            <span className="text-sm font-semibold text-white">{org.name}</span>
-          </div>
-          <NotificationBell
-            initialNotifications={
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (notifications ?? []) as any
-            }
-          />
-        </div>
-        <main id="main-content" className="flex-1 overflow-y-auto p-4 md:p-8">{children}</main>
-      </div>
-    </div>
+    <DashboardShell
+      orgSlug={orgSlug}
+      orgName={org.name}
+      orgLogoUrl={org.logo_url ?? null}
+      primaryColor={org.primary_color ?? "#6366f1"}
+      pendingPayments={pendingPayments}
+      pendingInscripciones={pendingInscripciones}
+      userRole={userRole}
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      initialNotifications={(notifications ?? []) as any}
+    >
+      {children}
+    </DashboardShell>
   );
 }

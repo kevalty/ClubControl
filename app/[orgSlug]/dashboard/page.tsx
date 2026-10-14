@@ -188,22 +188,22 @@ export default async function DashboardHomePage({
       </div>
 
       {/* Module tiles */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 xl:grid-cols-4">
         {visibleTiles.map((tile) => {
           if ("soon" in tile) {
             const Icon = tile.icon;
             return (
               <div
                 key={tile.label}
-                className="relative flex flex-col items-center gap-4 rounded-3xl border border-[#1a1a2e] bg-[#0d0d1a] px-4 py-8 opacity-40 select-none"
+                className="relative flex flex-col items-center gap-5 rounded-3xl border border-[#1a1a2e] bg-[#0d0d1a] px-6 py-10 opacity-40 select-none"
               >
-                <span className="absolute right-3 top-3 rounded-full bg-[#1a1a2e] px-2.5 py-1 text-[10px] font-bold text-[#6b7280]">
+                <span className="absolute right-3.5 top-3.5 rounded-full bg-[#1a1a2e] px-2.5 py-1 text-[10px] font-bold text-[#6b7280]">
                   Pronto
                 </span>
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[rgba(107,114,128,0.1)]">
-                  <Icon className="size-8 text-[#4b5563]" />
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-[rgba(107,114,128,0.1)]">
+                  <Icon className="size-10 text-[#4b5563]" />
                 </div>
-                <span className="text-sm font-semibold text-[#6b7280]">{tile.label}</span>
+                <span className="text-base font-semibold text-[#6b7280]">{tile.label}</span>
               </div>
             );
           }
@@ -213,22 +213,22 @@ export default async function DashboardHomePage({
             <div key={tile.label} className="relative">
               <Link
                 href={tile.href}
-                className="group flex flex-col items-center gap-4 rounded-3xl border border-[#1a1a2e] bg-[#111120] px-4 py-8 transition-all hover:border-[#2a2a4e] hover:bg-[#14142a] hover:shadow-lg hover:shadow-black/20"
+                className="group flex flex-col items-center gap-5 rounded-3xl border border-[#1a1a2e] bg-[#111120] px-6 py-10 transition-all hover:border-[#2a2a4e] hover:bg-[#14142a] hover:shadow-xl hover:shadow-black/30"
               >
                 <div
                   className={cn(
-                    "flex h-16 w-16 items-center justify-center rounded-2xl transition-colors",
+                    "flex h-20 w-20 items-center justify-center rounded-2xl transition-colors",
                     colors.bg
                   )}
                 >
-                  <Icon className={cn("size-8", colors.icon)} />
+                  <Icon className={cn("size-10", colors.icon)} />
                 </div>
-                <span className="text-sm font-semibold text-[#e5e7eb] group-hover:text-white">
+                <span className="text-base font-semibold text-[#e5e7eb] group-hover:text-white">
                   {tile.label}
                 </span>
               </Link>
               {tile.badge !== undefined && tile.badge > 0 && (
-                <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#ef4444] px-1 text-[10px] font-bold text-white shadow-md">
+                <span className="absolute -right-2 -top-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-[#ef4444] px-1.5 text-xs font-bold text-white shadow-md">
                   {tile.badge > 99 ? "99+" : tile.badge}
                 </span>
               )}
