@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Menu } from "lucide-react";
+import { Menu, Home } from "lucide-react";
+import Link from "next/link";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
 import { NotificationBell } from "@/components/dashboard/notification-bell";
 
@@ -47,25 +48,33 @@ export function DashboardShell({
 
       <div className="flex flex-1 flex-col min-h-0">
         {/* Desktop topbar */}
-        <div className="hidden md:flex items-center justify-between border-b border-[#1a1a2e] bg-[#08080f] px-4 py-2 print:hidden">
-          <div className="flex items-center gap-3">
+        <div className="hidden md:flex items-center justify-between border-b border-[#1a1a2e] bg-[#09090f] px-4 py-2.5 print:hidden">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setDesktopOpen((v) => !v)}
               aria-label="Abrir menú"
-              className="rounded-lg p-1.5 text-[#6b7280] hover:bg-[#1a1a2e] hover:text-white transition-colors"
+              className="rounded-lg p-1.5 text-[#4b5563] hover:bg-white/[0.05] hover:text-white transition-colors"
             >
               <Menu className="size-5" />
             </button>
+            <Link
+              href={`/${orgSlug}/dashboard`}
+              aria-label="Inicio"
+              className="rounded-lg p-1.5 text-[#4b5563] hover:bg-white/[0.05] hover:text-[#818cf8] transition-colors"
+            >
+              <Home className="size-5" />
+            </Link>
+            <div className="mx-1 h-5 w-px bg-[#1a1a2e]" />
             {orgLogoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={orgLogoUrl}
                 alt={orgName}
-                className="h-7 w-7 rounded-md object-contain"
+                className="h-6 w-6 rounded-md object-contain"
               />
             ) : (
               <div
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs font-bold text-white"
+                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[10px] font-bold text-white"
                 style={{ backgroundColor: primaryColor }}
               >
                 {orgName.charAt(0).toUpperCase()}
