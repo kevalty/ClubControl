@@ -2,10 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import {
-  Landmark, MessageCircle, Megaphone, Settings, MapPin, Tag, Users, CreditCard,
+  Landmark, MessageCircle, Megaphone, Settings, MapPin, Tag, Users, CreditCard, Building2,
 } from "lucide-react";
 
 const sections = [
+  { href: "configuracion/club",        label: "Datos del club",     icon: Building2,    desc: "Nombre, logo y color del club" },
   { href: "configuracion/pagos",       label: "Cuentas bancarias",  icon: Landmark,     desc: "Datos bancarios para recibir transferencias" },
   { href: "configuracion/whatsapp",    label: "WhatsApp",           icon: MessageCircle, desc: "Conectar tu número de WhatsApp Business" },
   { href: "whatsapp/anuncio",          label: "Enviar anuncio",     icon: Megaphone,     desc: "Mensaje masivo a todos los miembros activos" },

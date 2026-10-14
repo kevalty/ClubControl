@@ -1,0 +1,713 @@
+{
+  "nodes": [
+    {
+      "id": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_fenix_phase2_plan",
+      "label": "FENIX Phase 2 — Implementation Plan",
+      "file_type": "document",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 1",
+      "source_url": null,
+      "captured_at": "2026-09-22",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task1_db_migration",
+      "label": "Task 1: DB Migrations (teams, class_enrollments, member-documents)",
+      "file_type": "document",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 51",
+      "source_url": null,
+      "captured_at": "2026-09-22",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task2_document_upload",
+      "label": "Task 2: Document Upload in Public Registration",
+      "file_type": "document",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 203",
+      "source_url": null,
+      "captured_at": "2026-09-22",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task3_approval_modal",
+      "label": "Task 3: Approval Modal (fee type / sede / clase)",
+      "file_type": "document",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 361",
+      "source_url": null,
+      "captured_at": "2026-09-22",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task4_teams_staff",
+      "label": "Task 4: Tournament Teams + Staff Rename",
+      "file_type": "document",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 650",
+      "source_url": null,
+      "captured_at": "2026-09-22",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task5_attendance_mobile",
+      "label": "Task 5: Mobile-First Attendance Panel",
+      "file_type": "document",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 931",
+      "source_url": null,
+      "captured_at": "2026-09-22",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task6_fixes",
+      "label": "Task 6: Fixes (print, search, layout)",
+      "file_type": "document",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 1139",
+      "source_url": null,
+      "captured_at": "2026-09-22",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_table_teams",
+      "label": "DB Table: teams",
+      "file_type": "concept",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 76",
+      "source_url": null,
+      "captured_at": "2026-09-22",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_table_team_members",
+      "label": "DB Table: team_members",
+      "file_type": "concept",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 89",
+      "source_url": null,
+      "captured_at": "2026-09-22",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_table_class_enrollments",
+      "label": "DB Table: class_enrollments",
+      "file_type": "concept",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 101",
+      "source_url": null,
+      "captured_at": "2026-09-22",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_bucket_member_documents",
+      "label": "Storage Bucket: member-documents (private)",
+      "file_type": "concept",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 185",
+      "source_url": null,
+      "captured_at": "2026-09-22",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_component_aprobar_modal",
+      "label": "Component: AprobarModal (approval modal with fee/location/class)",
+      "file_type": "concept",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 424",
+      "source_url": null,
+      "captured_at": "2026-09-22",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_component_attendance_panel",
+      "label": "Component: AttendancePanel (mobile-first, presente/ausente/justificado)",
+      "file_type": "concept",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 987",
+      "source_url": null,
+      "captured_at": "2026-09-22",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_route_inscripcion",
+      "label": "Route: /[orgSlug]/inscripcion (public registration form)",
+      "file_type": "concept",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 31",
+      "source_url": null,
+      "captured_at": "2026-09-22",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_route_equipo",
+      "label": "Route: /[orgSlug]/dashboard/equipo (tournament teams, renamed from staff)",
+      "file_type": "concept",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 37",
+      "source_url": null,
+      "captured_at": "2026-09-22",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_route_staff",
+      "label": "Route: /[orgSlug]/dashboard/staff (staff management, moved from equipo)",
+      "file_type": "concept",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 36",
+      "source_url": null,
+      "captured_at": "2026-09-22",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_rls_pattern",
+      "label": "RLS Pattern: organization-scoped row-level security for new tables",
+      "file_type": "rationale",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 15",
+      "source_url": null,
+      "captured_at": "2026-09-22",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_constraint_justified",
+      "label": "DB Constraint: class_bookings.status extended with 'justified'",
+      "file_type": "concept",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 115",
+      "source_url": null,
+      "captured_at": "2026-09-22",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_specs_2026_09_08_dark_ui_redesign_md_dark_ui_spec",
+      "label": "Dark & Premium UI Redesign Spec",
+      "file_type": "document",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\specs\\2026-09-08-dark-ui-redesign.md",
+      "source_location": "line 1",
+      "source_url": null,
+      "captured_at": "2026-09-08",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_specs_2026_09_08_dark_ui_redesign_md_color_palette",
+      "label": "Dark Color Palette (CSS tokens: background, surface, accent-indigo, accent-violet)",
+      "file_type": "concept",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\specs\\2026-09-08-dark-ui-redesign.md",
+      "source_location": "line 18",
+      "source_url": null,
+      "captured_at": "2026-09-08",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_specs_2026_09_08_dark_ui_redesign_md_sidebar_structure",
+      "label": "Sidebar Structure: 220px, General/Operaciones sections, bottom Configuración",
+      "file_type": "concept",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\specs\\2026-09-08-dark-ui-redesign.md",
+      "source_location": "line 87",
+      "source_url": null,
+      "captured_at": "2026-09-08",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_specs_2026_09_08_dark_ui_redesign_md_kpi_cards_design",
+      "label": "KPI Cards Design: surface-2 bg, 2px top gradient line, 26px bold value",
+      "file_type": "concept",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\specs\\2026-09-08-dark-ui-redesign.md",
+      "source_location": "line 71",
+      "source_url": null,
+      "captured_at": "2026-09-08",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_specs_2026_09_08_dark_ui_redesign_md_rationale_no_light_mode",
+      "label": "Rationale: No light mode in MVP — dark forced via class='dark' on html",
+      "file_type": "rationale",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\specs\\2026-09-08-dark-ui-redesign.md",
+      "source_location": "line 109",
+      "source_url": null,
+      "captured_at": "2026-09-08",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_specs_2026_09_08_dark_ui_redesign_md_rationale_primary_color",
+      "label": "Rationale: org.primary_color uses accent-indigo default; future CSS var injection from DB, not hardcoded in JS",
+      "file_type": "rationale",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\specs\\2026-09-08-dark-ui-redesign.md",
+      "source_location": "line 111",
+      "source_url": null,
+      "captured_at": "2026-09-08",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "docs_superpowers_specs_2026_09_08_dark_ui_redesign_md_files_affected",
+      "label": "Files Affected: globals.css, responsive-nav.tsx, dashboard layout.tsx, dashboard page.tsx, badge.tsx, button.tsx",
+      "file_type": "concept",
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\specs\\2026-09-08-dark-ui-redesign.md",
+      "source_location": "line 118",
+      "source_url": null,
+      "captured_at": "2026-09-08",
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ss_md_session_transcript",
+      "label": "ss.md — Claude Code agent session transcript/log",
+      "file_type": "document",
+      "source_file": "D:\\app muncit\\controllaclub\\ss.md",
+      "source_location": "line 1",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "trajectory_md_session_transcript",
+      "label": "trajectory.md — Claude Code agent session transcript/log (same session as ss.md)",
+      "file_type": "document",
+      "source_file": "D:\\app muncit\\controllaclub\\trajectory.md",
+      "source_location": "line 1",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "public_file_svg_icon",
+      "label": "public/file.svg — Document/file icon (grey, 16x16)",
+      "file_type": "image",
+      "source_file": "D:\\app muncit\\controllaclub\\public\\file.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "public_globe_svg_icon",
+      "label": "public/globe.svg — Globe/world icon (grey, 16x16)",
+      "file_type": "image",
+      "source_file": "D:\\app muncit\\controllaclub\\public\\globe.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "public_next_svg_logo",
+      "label": "public/next.svg — Next.js wordmark logo (black, 394x80)",
+      "file_type": "image",
+      "source_file": "D:\\app muncit\\controllaclub\\public\\next.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "public_vercel_svg_logo",
+      "label": "public/vercel.svg — Vercel triangle logo (white, 1155x1000)",
+      "file_type": "image",
+      "source_file": "D:\\app muncit\\controllaclub\\public\\vercel.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "public_window_svg_icon",
+      "label": "public/window.svg — Browser window icon (grey, 16x16)",
+      "file_type": "image",
+      "source_file": "D:\\app muncit\\controllaclub\\public\\window.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "public_icon_192_png_pwa",
+      "label": "public/icon-192.png — PWA app icon 192x192 (solid sky blue #29AADF)",
+      "file_type": "image",
+      "source_file": "D:\\app muncit\\controllaclub\\public\\icon-192.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "public_icon_512_png_pwa",
+      "label": "public/icon-512.png — PWA app icon 512x512 (solid sky blue #29AADF)",
+      "file_type": "image",
+      "source_file": "D:\\app muncit\\controllaclub\\public\\icon-512.png",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_fenix_phase2_plan",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task1_db_migration",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 51",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_fenix_phase2_plan",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task2_document_upload",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 203",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_fenix_phase2_plan",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task3_approval_modal",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 361",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_fenix_phase2_plan",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task4_teams_staff",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 650",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_fenix_phase2_plan",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task5_attendance_mobile",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 931",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_fenix_phase2_plan",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task6_fixes",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 1139",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task1_db_migration",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_table_teams",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 76",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task1_db_migration",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_table_team_members",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 89",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task1_db_migration",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_table_class_enrollments",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 101",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task1_db_migration",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_bucket_member_documents",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 185",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task1_db_migration",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_constraint_justified",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 115",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task2_document_upload",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_bucket_member_documents",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 289",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task2_document_upload",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_route_inscripcion",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 205",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task3_approval_modal",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_component_aprobar_modal",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 423",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task3_approval_modal",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_table_class_enrollments",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 370",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task4_teams_staff",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_table_teams",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 662",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task4_teams_staff",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_route_equipo",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 654",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task4_teams_staff",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_route_staff",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 653",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task5_attendance_mobile",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_component_attendance_panel",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 985",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task5_attendance_mobile",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_table_class_enrollments",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 939",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task5_attendance_mobile",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_constraint_justified",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 943",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_rls_pattern",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_task1_db_migration",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 15",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_specs_2026_09_08_dark_ui_redesign_md_dark_ui_spec",
+      "target": "docs_superpowers_specs_2026_09_08_dark_ui_redesign_md_color_palette",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\specs\\2026-09-08-dark-ui-redesign.md",
+      "source_location": "line 18",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_specs_2026_09_08_dark_ui_redesign_md_dark_ui_spec",
+      "target": "docs_superpowers_specs_2026_09_08_dark_ui_redesign_md_sidebar_structure",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\specs\\2026-09-08-dark-ui-redesign.md",
+      "source_location": "line 87",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_specs_2026_09_08_dark_ui_redesign_md_dark_ui_spec",
+      "target": "docs_superpowers_specs_2026_09_08_dark_ui_redesign_md_kpi_cards_design",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\specs\\2026-09-08-dark-ui-redesign.md",
+      "source_location": "line 71",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_specs_2026_09_08_dark_ui_redesign_md_dark_ui_spec",
+      "target": "docs_superpowers_specs_2026_09_08_dark_ui_redesign_md_files_affected",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\specs\\2026-09-08-dark-ui-redesign.md",
+      "source_location": "line 118",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_specs_2026_09_08_dark_ui_redesign_md_rationale_no_light_mode",
+      "target": "docs_superpowers_specs_2026_09_08_dark_ui_redesign_md_dark_ui_spec",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\specs\\2026-09-08-dark-ui-redesign.md",
+      "source_location": "line 109",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_specs_2026_09_08_dark_ui_redesign_md_rationale_primary_color",
+      "target": "docs_superpowers_specs_2026_09_08_dark_ui_redesign_md_color_palette",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\specs\\2026-09-08-dark-ui-redesign.md",
+      "source_location": "line 111",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_specs_2026_09_08_dark_ui_redesign_md_color_palette",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_component_attendance_panel",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 1033",
+      "weight": 0.85
+    },
+    {
+      "source": "docs_superpowers_specs_2026_09_08_dark_ui_redesign_md_color_palette",
+      "target": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_component_aprobar_modal",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": "line 590",
+      "weight": 0.85
+    },
+    {
+      "source": "ss_md_session_transcript",
+      "target": "trajectory_md_session_transcript",
+      "relation": "semantically_similar_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\ss.md",
+      "source_location": "line 1",
+      "weight": 1.0
+    },
+    {
+      "source": "public_icon_192_png_pwa",
+      "target": "public_icon_512_png_pwa",
+      "relation": "semantically_similar_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "D:\\app muncit\\controllaclub\\public\\icon-192.png",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_22_fenix_phase2_md_fenix_phase2_plan",
+      "target": "docs_superpowers_specs_2026_09_08_dark_ui_redesign_md_dark_ui_spec",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "D:\\app muncit\\controllaclub\\docs\\superpowers\\plans\\2026-09-22-fenix-phase2.md",
+      "source_location": null,
+      "weight": 0.75
+    }
+  ],
+  "hyperedges": [],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

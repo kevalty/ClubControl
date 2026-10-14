@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"d:/app muncit/controllaclub/app/[orgSlug]/dashboard/configuracion\")"
+    ],
+    "additionalDirectories": [
+      "d:\\app muncit\\controllaclub\\app\\[orgSlug]\\dashboard\\configuracion"
+    ]
+  }
+}

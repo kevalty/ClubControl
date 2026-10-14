@@ -60,6 +60,7 @@ export default async function MiembroDetallePage({
     locationsListResult,
     classesListResult,
     planesResult,
+    { data: asistencias },
   ] = await Promise.all([
     supabase
       .from("memberships")
@@ -135,6 +136,12 @@ export default async function MiembroDetallePage({
           .eq("organization_id", member.organization_id)
           .eq("is_active", true)
           .order("name"),
+    supabase
+      .from("attendance")
+      .select("id, checked_in_at, method")
+      .eq("member_id", memberId)
+      .order("checked_in_at", { ascending: false })
+      .limit(20),
   ]);
 
   const payments = paymentsResult.data;
@@ -530,12 +537,30 @@ export default async function MiembroDetallePage({
       {/* ===== ASISTENCIA ===== */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Asistencia</CardTitle>
+          <CardTitle className="text-base">Asistencia reciente</CardTitle>
         </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          {/* TODO(Fase 4, módulo 8.7): historial real de attendance. */}
-          El historial de asistencia estará disponible cuando se implemente
-          el control de acceso por QR.
+        <CardContent className="text-sm">
+          {!asistencias || asistencias.length === 0 ? (
+            <p className="text-muted-foreground">Sin registros de asistencia.</p>
+          ) : (
+            <ul className="space-y-1">
+              {asistencias.map((a) => (
+                <li key={a.id} className="flex items-center justify-between text-muted-foreground">
+                  <span>
+                    {new Date(a.checked_in_at).toLocaleDateString("es-EC", {
+                      weekday: "short", day: "numeric", month: "short", year: "numeric",
+                      timeZone: "America/Guayaquil",
+                    })}
+                    {" — "}
+                    {new Date(a.checked_in_at).toLocaleTimeString("es-EC", {
+                      hour: "2-digit", minute: "2-digit", timeZone: "America/Guayaquil",
+                    })}
+                  </span>
+                  <Badge variant="secondary" className="capitalize">{a.method}</Badge>
+                </li>
+              ))}
+            </ul>
+          )}
         </CardContent>
       </Card>
     </div>
