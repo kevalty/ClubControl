@@ -6,9 +6,17 @@ import {
   TrendingDown,
   Users,
   CreditCard,
-  AlertTriangle,
   Clock,
   ArrowRight,
+  Calendar,
+  Tag,
+  ClipboardCheck,
+  BarChart2,
+  UserCog,
+  Settings,
+  QrCode,
+  Smartphone,
+  type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -157,6 +165,113 @@ export default async function DashboardHomePage({
 
   const monthName = now.toLocaleString("es-EC", { month: "long", timeZone: "America/Guayaquil" });
 
+  const userRole = myMembership?.role ?? "staff";
+  const roleLabel: Record<string, string> = {
+    owner: "Administrador",
+    admin: "Administrador",
+    staff: "Recepcionista",
+    trainer: "Entrenador",
+  };
+  const displayName =
+    authData.user?.user_metadata?.full_name ??
+    authData.user?.email?.split("@")[0] ??
+    roleLabel[userRole] ??
+    "Usuario";
+
+  type Tile = {
+    label: string;
+    href: string;
+    icon: LucideIcon;
+    color: string;
+    badge?: number;
+    roles: string[];
+  };
+  type ComingSoonTile = { label: string; icon: LucideIcon; soon: true };
+
+  const tiles: (Tile | ComingSoonTile)[] = [
+    {
+      label: "Miembros",
+      href: `/${orgSlug}/dashboard/miembros`,
+      icon: Users,
+      color: "indigo",
+      roles: ["owner", "admin", "staff"],
+    },
+    {
+      label: "Pagos",
+      href: `/${orgSlug}/dashboard/pagos`,
+      icon: CreditCard,
+      color: "emerald",
+      badge: pendingPayments > 0 ? pendingPayments : undefined,
+      roles: ["owner", "admin", "staff"],
+    },
+    {
+      label: "Clases",
+      href: `/${orgSlug}/dashboard/clases`,
+      icon: Calendar,
+      color: "violet",
+      roles: ["owner", "admin", "staff", "trainer"],
+    },
+    {
+      label: "Planes",
+      href: `/${orgSlug}/dashboard/planes`,
+      icon: Tag,
+      color: "sky",
+      roles: ["owner", "admin"],
+    },
+    {
+      label: "Asistencia",
+      href: `/${orgSlug}/dashboard/asistencia`,
+      icon: ClipboardCheck,
+      color: "teal",
+      roles: ["owner", "admin", "staff", "trainer"],
+    },
+    {
+      label: "Reportes",
+      href: `/${orgSlug}/dashboard/reportes`,
+      icon: BarChart2,
+      color: "amber",
+      roles: ["owner", "admin"],
+    },
+    {
+      label: "Equipo",
+      href: `/${orgSlug}/dashboard/staff`,
+      icon: UserCog,
+      color: "rose",
+      roles: ["owner", "admin"],
+    },
+    {
+      label: "Configuración",
+      href: `/${orgSlug}/dashboard/configuracion`,
+      icon: Settings,
+      color: "slate",
+      roles: ["owner", "admin"],
+    },
+    {
+      label: "Acceso QR",
+      href: `/${orgSlug}/checkin`,
+      icon: QrCode,
+      color: "cyan",
+      roles: ["owner", "admin", "staff"],
+    },
+    { label: "Portal miembro", icon: Smartphone, soon: true },
+  ];
+
+  const tileColors: Record<string, { bg: string; icon: string }> = {
+    indigo: { bg: "bg-[rgba(99,102,241,0.12)] group-hover:bg-[rgba(99,102,241,0.2)]",  icon: "text-[#818cf8]" },
+    emerald:{ bg: "bg-[rgba(16,185,129,0.12)] group-hover:bg-[rgba(16,185,129,0.2)]",  icon: "text-[#34d399]" },
+    violet: { bg: "bg-[rgba(139,92,246,0.12)] group-hover:bg-[rgba(139,92,246,0.2)]",  icon: "text-[#a78bfa]" },
+    sky:    { bg: "bg-[rgba(14,165,233,0.12)] group-hover:bg-[rgba(14,165,233,0.2)]",  icon: "text-[#38bdf8]" },
+    teal:   { bg: "bg-[rgba(20,184,166,0.12)] group-hover:bg-[rgba(20,184,166,0.2)]",  icon: "text-[#2dd4bf]" },
+    amber:  { bg: "bg-[rgba(245,158,11,0.12)] group-hover:bg-[rgba(245,158,11,0.2)]",  icon: "text-[#fbbf24]" },
+    rose:   { bg: "bg-[rgba(244,63,94,0.12)]  group-hover:bg-[rgba(244,63,94,0.2)]",   icon: "text-[#fb7185]" },
+    slate:  { bg: "bg-[rgba(100,116,139,0.12)] group-hover:bg-[rgba(100,116,139,0.2)]",icon: "text-[#94a3b8]" },
+    cyan:   { bg: "bg-[rgba(6,182,212,0.12)]  group-hover:bg-[rgba(6,182,212,0.2)]",   icon: "text-[#22d3ee]" },
+  };
+
+  const visibleTiles = tiles.filter((t) =>
+    "soon" in t ? true : t.roles.includes(userRole)
+  );
+
   function daysUntil(dateStr: string) {
     const diff =
       new Date(dateStr).getTime() - new Date(today).getTime();
@@ -165,26 +280,70 @@ export default async function DashboardHomePage({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Page header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-          <p className="mt-0.5 text-sm text-[#6b7280] capitalize">
-            {now.toLocaleDateString("es-EC", {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-              timeZone: "America/Guayaquil",
-            })}
-          </p>
-        </div>
-        <Link
-          href={`/${orgSlug}/dashboard/miembros`}
-          className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-        >
-          + Nuevo miembro
-        </Link>
+      {/* Greeting */}
+      <div>
+        <h1 className="text-2xl font-bold text-white capitalize">
+          Hola, {displayName}
+        </h1>
+        <p className="mt-0.5 text-sm text-[#6b7280] capitalize">
+          {now.toLocaleDateString("es-EC", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+            timeZone: "America/Guayaquil",
+          })}
+        </p>
+      </div>
+
+      {/* Module tiles */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        {visibleTiles.map((tile) => {
+          if ("soon" in tile) {
+            const Icon = tile.icon;
+            return (
+              <div
+                key={tile.label}
+                className="relative flex flex-col items-center gap-3 rounded-2xl border border-[#1a1a2e] bg-[#0d0d1a] p-5 opacity-50 select-none"
+              >
+                <span className="absolute right-2.5 top-2.5 rounded-full bg-[#1a1a2e] px-2 py-0.5 text-[10px] font-bold text-[#6b7280]">
+                  Pronto
+                </span>
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[rgba(107,114,128,0.1)]">
+                  <Icon className="size-7 text-[#4b5563]" />
+                </div>
+                <span className="text-sm font-semibold text-[#6b7280]">{tile.label}</span>
+              </div>
+            );
+          }
+          const colors = tileColors[tile.color] ?? tileColors.indigo;
+          const Icon = tile.icon;
+          return (
+            <div key={tile.label} className="relative">
+              <Link
+                href={tile.href}
+                className="group flex flex-col items-center gap-3 rounded-2xl border border-[#1a1a2e] bg-[#111120] p-5 transition-all hover:border-[#2a2a4e] hover:bg-[#14142a]"
+              >
+                <div
+                  className={cn(
+                    "flex h-14 w-14 items-center justify-center rounded-2xl transition-colors",
+                    colors.bg
+                  )}
+                >
+                  <Icon className={cn("size-7", colors.icon)} />
+                </div>
+                <span className="text-sm font-semibold text-[#e5e7eb] group-hover:text-white">
+                  {tile.label}
+                </span>
+              </Link>
+              {tile.badge !== undefined && tile.badge > 0 && (
+                <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#ef4444] px-1 text-[10px] font-bold text-white">
+                  {tile.badge > 99 ? "99+" : tile.badge}
+                </span>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* KPI cards */}
