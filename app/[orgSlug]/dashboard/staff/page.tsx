@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { Badge } from "@/components/ui/badge";
 import { invitarMiembroEquipo } from "./actions";
 import { InvitarForm } from "./invitar-form";
@@ -50,24 +51,25 @@ export default async function EquipoPage({
     .eq("organization_id", org.id)
     .order("created_at");
 
-  // Obtener emails de los usuarios activos
+  // Obtener emails de los usuarios activos via admin API (service role)
   const userIds = (equipo ?? [])
     .filter((m) => m.status !== "invited")
-    .map((m) => m.user_id);
+    .map((m) => m.user_id)
+    .filter(Boolean) as string[];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: profiles } = await (supabase as any)
-    .from("profiles")
-    .select("id, full_name, email")
-    .in("id", userIds.length > 0 ? userIds : ["00000000-0000-0000-0000-000000000000"])
-    .then((r: { data: unknown }) => r)
-    .catch(() => ({ data: [] }));
-
-  const profileMap = new Map(
-    ((profiles as Array<{ id: string; full_name: string | null; email: string | null }>) ?? []).map(
-      (p) => [p.id, p]
-    )
-  );
+  const profileMap = new Map<string, { full_name: string | null; email: string | null }>();
+  if (userIds.length > 0) {
+    const service = createServiceClient();
+    const { data: { users } } = await service.auth.admin.listUsers({ page: 1, perPage: 500 });
+    for (const u of users) {
+      if (userIds.includes(u.id)) {
+        profileMap.set(u.id, {
+          full_name: (u.user_metadata?.full_name as string | null) ?? null,
+          email: u.email ?? null,
+        });
+      }
+    }
+  }
 
   const action = invitarMiembroEquipo.bind(null, orgSlug, org.id);
 

@@ -556,7 +556,9 @@ export default async function MiembroDetallePage({
                       hour: "2-digit", minute: "2-digit", timeZone: "America/Guayaquil",
                     })}
                   </span>
-                  <Badge variant="secondary" className="capitalize">{a.method}</Badge>
+                  <Badge variant="secondary">
+                    {{ qr: "QR", manual: "Manual", staff: "Staff" }[a.method] ?? a.method}
+                  </Badge>
                 </li>
               ))}
             </ul>

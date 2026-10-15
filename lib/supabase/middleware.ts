@@ -117,8 +117,12 @@ export async function updateSession(request: NextRequest) {
           pathname.includes("/facturacion") ||
           pathname.includes("/whatsapp") ||
           pathname.includes("/reportes") ||
+          pathname.includes("/metricas") ||
+          pathname.match(/\/miembros\/export/) !== null ||
           pathname.match(/\/miembros\/nuevo/) !== null ||
           pathname.match(/\/miembros\/[^/]+\/editar/) !== null ||
+          pathname.match(/\/clases\/nuevo/) !== null ||
+          pathname.match(/\/clases\/[^/]+\/editar/) !== null ||
           pathname.match(/\/equipo\/nuevo/) !== null);
 
       if (isTrainerRestrictedPath) {
