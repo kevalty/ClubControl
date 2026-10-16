@@ -183,7 +183,7 @@ export default async function MetricasPage({
               Recaudo — {monthName}
             </p>
             <p className="mt-2 text-3xl font-extrabold text-white">
-              ${revenue.toLocaleString("es-EC", { minimumFractionDigits: 2 })}
+              ${revenue.toFixed(2)}
             </p>
             {revenueDelta !== null ? (
               <p

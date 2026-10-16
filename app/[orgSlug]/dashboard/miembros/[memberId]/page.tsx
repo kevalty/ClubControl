@@ -121,9 +121,10 @@ export default async function MiembroDetallePage({
           .order("name")
       : Promise.resolve({ data: null }),
     (member as { registration_status?: string }).registration_status === "pending_approval"
-      ? supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ? (supabase as any)
           .from("classes")
-          .select("id, name")
+          .select("id, name, location_id")
           .eq("organization_id", member.organization_id)
           .eq("is_active", true)
           .order("name")

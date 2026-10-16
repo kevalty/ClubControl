@@ -9,7 +9,7 @@ import { AprobarModal } from "./aprobar-modal";
 
 type FeeType = { id: string; name: string };
 type Location = { id: string; name: string };
-type Clase = { id: string; name: string };
+type Clase = { id: string; name: string; location_id: string | null };
 
 export function AprobarRechazarButtons({
   orgSlug,

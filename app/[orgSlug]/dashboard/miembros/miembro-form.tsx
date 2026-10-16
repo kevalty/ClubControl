@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,6 +61,12 @@ export function MiembroForm({
 }) {
   const [state, formAction, pending] = useActionState(action, undefined);
   const [activeTab, setActiveTab] = useState("personales");
+
+  useEffect(() => {
+    if (state?.error?.toLowerCase().includes("representante")) {
+      setActiveTab("representante");
+    }
+  }, [state?.error]);
 
   return (
     <form action={formAction} className="max-w-2xl space-y-6">
@@ -158,7 +164,7 @@ export function MiembroForm({
                 name="locationId"
                 defaultValue={initialValues?.location_id ?? undefined}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Seleccionar sede" />
                 </SelectTrigger>
                 <SelectContent>
@@ -178,7 +184,7 @@ export function MiembroForm({
                 name="feeTypeId"
                 defaultValue={initialValues?.fee_type_id ?? undefined}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Tarifa normal" />
                 </SelectTrigger>
                 <SelectContent>

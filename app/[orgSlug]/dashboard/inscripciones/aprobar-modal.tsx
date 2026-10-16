@@ -15,7 +15,7 @@ import { aprobarInscripcion } from "./actions";
 
 type FeeType = { id: string; name: string };
 type Location = { id: string; name: string };
-type Clase = { id: string; name: string };
+type Clase = { id: string; name: string; location_id: string | null };
 
 export function AprobarModal({
   orgSlug,
@@ -35,6 +35,10 @@ export function AprobarModal({
   const [feeTypeId, setFeeTypeId] = useState<string>("none");
   const [locationId, setLocationId] = useState<string>("");
   const [classId, setClassId] = useState<string>("");
+
+  const filteredClases = locationId
+    ? clases.filter((c) => c.location_id === locationId || c.location_id === null)
+    : clases;
   const [error, setError] = useState<string>("");
   const [pending, setPending] = useState(false);
 
@@ -93,7 +97,7 @@ export function AprobarModal({
         <Label>
           Sede <span className="text-destructive">*</span>
         </Label>
-        <Select value={locationId} onValueChange={setLocationId}>
+        <Select value={locationId} onValueChange={(v) => { setLocationId(v); setClassId(""); }}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Selecciona una sede..." />
           </SelectTrigger>
@@ -122,12 +126,12 @@ export function AprobarModal({
             <SelectValue placeholder="Selecciona un horario..." />
           </SelectTrigger>
           <SelectContent>
-            {clases.length === 0 ? (
+            {filteredClases.length === 0 ? (
               <SelectItem value="_none" disabled>
-                No hay clases creadas
+                {locationId ? "No hay clases para esta sede" : "No hay clases creadas"}
               </SelectItem>
             ) : (
-              clases.map((c) => (
+              filteredClases.map((c) => (
                 <SelectItem key={c.id} value={c.id}>
                   {c.name}
                 </SelectItem>

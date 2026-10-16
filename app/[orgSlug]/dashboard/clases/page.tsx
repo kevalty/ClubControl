@@ -145,15 +145,17 @@ export default async function ClasesPage({
                       </Badge>
                     </TableCell>
                     {!isTrainer ? (
-                      <TableCell className="flex justify-end gap-2 text-right">
-                        <LinkButton
-                          href={`/${orgSlug}/dashboard/clases/${c.id}/editar`}
-                          variant="outline"
-                          size="sm"
-                        >
-                          Editar
-                        </LinkButton>
-                        <ClaseActivaToggle orgSlug={orgSlug} classId={c.id} activa={c.is_active} />
+                      <TableCell>
+                        <div className="flex justify-end gap-2">
+                          <LinkButton
+                            href={`/${orgSlug}/dashboard/clases/${c.id}/editar`}
+                            variant="outline"
+                            size="sm"
+                          >
+                            Editar
+                          </LinkButton>
+                          <ClaseActivaToggle orgSlug={orgSlug} classId={c.id} activa={c.is_active} />
+                        </div>
                       </TableCell>
                     ) : null}
                   </TableRow>

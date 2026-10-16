@@ -47,9 +47,10 @@ export default async function InscripcionesPage({
       .eq("organization_id", org.id)
       .eq("is_active", true)
       .order("name"),
-    supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any)
       .from("classes")
-      .select("id, name")
+      .select("id, name, location_id")
       .eq("organization_id", org.id)
       .eq("is_active", true)
       .order("name"),
